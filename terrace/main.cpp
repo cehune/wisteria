@@ -6,9 +6,22 @@
 //
 
 #include <iostream>
+#include <Metal/Metal.hpp>
 
-int main(int argc, const char * argv[]) {
-    // insert code here...
-    std::cout << "Hello, World!\n";
-    return EXIT_SUCCESS;
+int main() {
+    // 1. Get the GPU
+    MTL::Device* device = MTL::CreateSystemDefaultDevice();
+    
+    if (!device) {
+        std::cerr << "Metal is not supported on this device." << std::endl;
+        return -1;
+    }
+
+    // 2. Print the name of your GPU (e.g., Apple M2 Max)
+    std::cout << "Successfully initialized: " << device->name()->utf8String() << std::endl;
+
+    // 3. Clean up (Metal-cpp uses manual reference counting)
+    device->release();
+    
+    return 0;
 }
