@@ -7,8 +7,13 @@
 
 #include <iostream>
 #include <Metal/Metal.hpp>
+#include "platform/ScopedReleasePool.hpp"
+#include "platform/Application.hpp"
+#import "platform/MetalView.h"
 
 int main() {
+    ScopedAutoreleasePool autoReleasePool;
+        
     // 1. Get the GPU
     MTL::Device* device = MTL::CreateSystemDefaultDevice();
     
@@ -21,7 +26,7 @@ int main() {
     std::cout << "Successfully initialized: " << device->name()->utf8String() << std::endl;
 
     // 3. Clean up (Metal-cpp uses manual reference counting)
-    device->release();
+    
     
     return 0;
 }
