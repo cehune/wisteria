@@ -9,7 +9,10 @@
 //so we can use native Cocoa functionality
 
 #import <MetalKit/MetalKit.h>
+#include "Application.hpp"
 
 @interface MetalView: MTKView<MTKViewDelegate>
-
+- (instancetype) initWithFrame:(CGRect) frame device:(id<MTLDevice>)device;
+- (void)applicationDidFinishLaunching:(NSNotification*)notification;
+- (void)drawInMTKView:(MTKView *)view;
 @end

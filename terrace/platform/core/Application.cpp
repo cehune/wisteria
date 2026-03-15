@@ -13,14 +13,14 @@ Application::Application(MTL::Device* _device) {
 }
 
 void Application::update() {
-    std::cout << "update";
+    // std::cout << "update";
 }
 void Application::render(MTL::RenderPassDescriptor* desc,
                          MTL::Drawable* drawable) {
     renderer->draw(desc, drawable);
 }
 void Application::shutdown() {
-    std::cout << "shutdown";
+    // std::cout << "shutdown";
 }
 
 /* =======PRIVATE=======*/

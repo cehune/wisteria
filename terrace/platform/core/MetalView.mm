@@ -6,7 +6,6 @@
 //
 
 #import "MetalView.h"
-#include "Application.hpp"
 
 @implementation MetalView {
     Application* app; // Pointer to your C++ engine
@@ -17,20 +16,21 @@
 - (instancetype) initWithFrame:(CGRect) frame device:(id<MTLDevice>)device {
     self = [super initWithFrame:frame device:device];
     if (self) {
+        self.delegate = self;
+        self.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
         app = new Application((__bridge MTL::Device*)self.device);
-        
     }
-    self.delegate = self;
+
     return self;
 }
 
--(void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
+- (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
     // https://developer.apple.com/documentation/metalkit/mtkviewdelegate/mtkview(_:drawablesizewillchange:)
     return;
 }
 
 
--(void)drawInMTKView:(MTKView *)view {
+- (void)drawInMTKView:(MTKView *)view {
     if (!view.currentDrawable || !view.currentRenderPassDescriptor)
         return;
     app->update();
@@ -41,8 +41,10 @@
     );
 }
     
--(void)dealloc {
+- (void)dealloc {
+    std::cout << "debug";
     delete app;
 }
+ 
 
 @end

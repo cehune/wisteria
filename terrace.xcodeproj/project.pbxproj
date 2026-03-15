@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		72C8D7172F660FD700E6F167 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72C8D7162F660FD700E6F167 /* MetalKit.framework */; };
+		72C8D7202F66298A00E6F167 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72C8D71F2F66298A00E6F167 /* AppKit.framework */; };
 		72F4B0792F6245510084357C /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B0782F6245510084357C /* Metal.framework */; };
 		72F4B07B2F6245650084357C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B07A2F6245650084357C /* Foundation.framework */; };
 		72F4B07D2F62456D0084357C /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B07C2F62456D0084357C /* QuartzCore.framework */; };
@@ -27,6 +28,7 @@
 
 /* Begin PBXFileReference section */
 		72C8D7162F660FD700E6F167 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		72C8D71F2F66298A00E6F167 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		72F4B06D2F6243DC0084357C /* terrace */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = terrace; sourceTree = BUILT_PRODUCTS_DIR; };
 		72F4B0782F6245510084357C /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		72F4B07A2F6245650084357C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -46,6 +48,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				72C8D7202F66298A00E6F167 /* AppKit.framework in Frameworks */,
 				72C8D7172F660FD700E6F167 /* MetalKit.framework in Frameworks */,
 				72F4B07D2F62456D0084357C /* QuartzCore.framework in Frameworks */,
 				72F4B07B2F6245650084357C /* Foundation.framework in Frameworks */,
@@ -76,6 +79,7 @@
 		72F4B0772F6245510084357C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				72C8D71F2F66298A00E6F167 /* AppKit.framework */,
 				72C8D7162F660FD700E6F167 /* MetalKit.framework */,
 				72F4B07C2F62456D0084357C /* QuartzCore.framework */,
 				72F4B07A2F6245650084357C /* Foundation.framework */,
