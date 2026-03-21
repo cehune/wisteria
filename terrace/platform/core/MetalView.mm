@@ -24,6 +24,10 @@
     return self;
 }
 
+-(void)applicationDidFinishLaunching:(NSNotification *)notification {
+    return;
+}
+
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
     // https://developer.apple.com/documentation/metalkit/mtkviewdelegate/mtkview(_:drawablesizewillchange:)
     return;

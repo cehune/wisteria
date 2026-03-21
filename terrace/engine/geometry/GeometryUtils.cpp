@@ -1,5 +1,5 @@
 //
-//  utils.cpp
+//  GeometryUtils.cpp
 //  terrace
 //
 //  Created by celine on 2026-03-15.
@@ -97,8 +97,8 @@ namespace Geometry {
     // ── Sampling ─────────────────────────────────────────────────
  
     Vec3 randomUnitVector() {
-        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-        std::mt19937 gen(seed);
+        long seed = std::chrono::system_clock::now().time_since_epoch().count();
+        std::mt19937_64 gen(seed);
         std::uniform_real_distribution<float> distrib(-1.0f, 1.0f);
 
         float x = distrib(gen);

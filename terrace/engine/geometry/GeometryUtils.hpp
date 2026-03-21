@@ -1,5 +1,5 @@
 //
-//  utils.hpp
+//  GeometryUtils.hpp
 //  terrace
 //
 //  Created by celine on 2026-03-15.
