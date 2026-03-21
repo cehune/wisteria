@@ -4,7 +4,7 @@
 //
 //  Created by celine on 2026-03-14.
 //
-
+#pragma once
 #import <MetalKit/MetalKit.h>
 #import "MetalView.h"
 #import <Metal/Metal.h>
