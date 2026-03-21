@@ -9,6 +9,8 @@
 #include <cstdint>
 #include "engine/geometry/Config.hpp"
 
+using PipelineID = uint32_t;       // ← just a uint32_t
+
 // vertexes
 struct Vertex {
     Vec4 position;

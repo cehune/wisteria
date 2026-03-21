@@ -7,6 +7,7 @@
 
 #pragma once
 #include "Core.hpp"
+#include "engine/renderer/PipelineKey.hpp"
 
 struct Mesh {
     uint8_t index; // in scene meshes vector
@@ -17,7 +18,7 @@ struct Mesh {
     uint32_t numTriangles;
     Vec4 localBoundsMin;
     Vec4 localBoundsMax;
-    std::vector<int> _meshInstanceIndexes;
+    std::vector<int> meshInstanceIndexes;
 };
 
 struct MeshInstance {
@@ -25,6 +26,7 @@ struct MeshInstance {
     uint8_t index; // in scene meshInstance vector
     uint32_t materialID;
     simd_float4x4 transform;
+    PipelineID pipelineID; // index of pipelineID in renderer
     Vec4 boundsMin;
     Vec4 boundsMax;
 };
