@@ -10,7 +10,7 @@
 #include "engine/renderer/PipelineKey.hpp"
 
 struct Mesh {
-    uint8_t index; // in scene meshes vector
+    unsigned long index; // in scene meshes vector
     std::string name;
     
     uint32_t vertexOffset;

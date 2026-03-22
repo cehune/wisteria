@@ -14,8 +14,8 @@ void Scene::addMeshDirect(Mesh& mesh,
                            MTL::Device* device)
 {
     _pool.uploadMesh(mesh, verts, indices, device);
-    _meshes.push_back(mesh);
     mesh.index = _meshes.size();
+    _meshes.push_back(mesh);
     
     return;
 }

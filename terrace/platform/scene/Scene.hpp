@@ -30,6 +30,8 @@ public:
 
     SceneGeometryPool& geometryPool() { return _pool; }
     MTL::Buffer* materialBuffer()     { return _materialBuffer; }
+    std::vector<Mesh>& meshes() { return _meshes; }
+
     
 private:
     std::vector<Mesh>               _meshes;

@@ -40,7 +40,7 @@ std::pair<Vec4, Vec4> SceneGeometryPool::calculateBounds(const std::vector<Verte
     Vec4 boundsMin{ FLT_MAX,  FLT_MAX,  FLT_MAX, 0};
     Vec4 boundsMax{-FLT_MAX, -FLT_MAX, -FLT_MAX, 0};
     
-    for (const Vertex vert : verts) {
+    for (auto& vert: verts) {
         boundsMin[0] = std::min(boundsMin[0], vert.position[0]);
         boundsMin[1] = std::min(boundsMin[1], vert.position[1]);
         boundsMin[2] = std::min(boundsMin[2], vert.position[2]);
@@ -50,4 +50,11 @@ std::pair<Vec4, Vec4> SceneGeometryPool::calculateBounds(const std::vector<Verte
         boundsMax[2] = std::max(boundsMax[2], vert.position[2]);
     }
     return {boundsMin, boundsMax};
+}
+
+MTL::Buffer* SceneGeometryPool::vertexBufferFor(const Mesh& mesh) {
+    return _vertexBuffers[mesh.vertexOffset];
+}
+MTL::Buffer* SceneGeometryPool::indexBufferFor(const Mesh& mesh) {
+    return _indexBuffers[mesh.indexOffset];
 }
