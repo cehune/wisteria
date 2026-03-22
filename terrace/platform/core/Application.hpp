@@ -10,6 +10,7 @@
 #include <QuartzCore/QuartzCore.hpp>
 #include <iostream>
 #include "Renderer.hpp"
+#include "Scene.hpp"
 
 class Application {
 public:
@@ -26,8 +27,6 @@ private:
 
     // GPU entry point
     MTL::Device* device = nullptr;
-    MTL::CommandQueue* commandQueue = nullptr;
-
-    // Renderer (your engine)
+    std::unique_ptr<Scene>    scene;
     std::unique_ptr<Renderer> renderer;
 };

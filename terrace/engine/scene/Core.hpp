@@ -17,6 +17,7 @@ struct Vertex {
     Vec4 normal;
     Vec2 uv;
     Vec4 tangent;
+    Vec4 color;
 };
 
 

@@ -25,6 +25,24 @@ void Application::shutdown() {
 
 /* =======PRIVATE=======*/
 void Application::init(MTL::Device* device) {
-    commandQueue = device->newCommandQueue();
-    renderer = std::make_unique<Renderer>(device);
+    this->device = device;
+    scene    = std::make_unique<Scene>();
+        
+    // Hardcode a triangle for now
+    Mesh mesh{};
+    mesh.index = 0;
+    mesh.numTriangles = 1;
+    
+    std::vector<Vertex> verts = {
+        {{ 0.0f,  0.5f, 0.0f, 1.0f}, {}, {}, {}, {1.0f, 0.0f, 0.0f, 1.0f}},
+        {{-0.5f, -0.5f, 0.0f, 1.0f}, {}, {}, {}, {0.0f, 1.0f, 0.0f, 1.0f}},
+        {{ 0.5f, -0.5f, 0.0f, 1.0f}, {}, {}, {}, {0.0f, 0.0f, 1.0f, 1.0f}},
+    };
+    
+    std::vector<uint32_t> indices = {0, 1, 2};
+    scene->addMeshDirect(mesh, verts, indices, device);
+
+    std::cout << "uploaded all \n";
+    
+    renderer = std::make_unique<Renderer>(device, scene.get());
 }

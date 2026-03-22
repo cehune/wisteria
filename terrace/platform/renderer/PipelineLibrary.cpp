@@ -5,6 +5,9 @@
 //  Created by celine on 2026-03-21.
 //
 #include "PipelineLibrary.hpp"
+#include <iostream>
+
+PipelineLibrary::PipelineLibrary(MTL::Device* device, MTL::Library* library): _device(device), _library(library) {}
 
 MTL::RenderPipelineState* PipelineLibrary::getOrCreate(const PipelineKey& key) {
     auto it = _cache.find(key);
@@ -18,9 +21,16 @@ MTL::RenderPipelineState* PipelineLibrary::getOrCreate(const PipelineKey& key) {
     desc->setVertexFunction(vertFn);
     desc->setFragmentFunction(fragFn);
     desc->colorAttachments()->object(0)->setPixelFormat(toMTL(key.pixelFormat));
-
+    
     NS::Error* err = nullptr;
     auto* pso = _device->newRenderPipelineState(desc, &err);
+    
+    if (!pso || err) {
+        std::cerr << "Pipeline compilation failed!\n";
+        if (err) {
+            std::cerr << "Error: " << err->localizedDescription()->utf8String() << "\n";
+        }
+    }
 
     desc->release();
 

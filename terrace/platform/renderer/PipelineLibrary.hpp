@@ -40,23 +40,12 @@
  _shaderCache   std::unordered_map<uint32_t, MTL::Function*>   ID → compiled function
  _cache         std::unordered_map<PipelineKey, MTL::RenderPipelineState*>
  
- registerShader("vertex_main")
-   → assigns ID 0
-   → stored in _nameToID["vertex_main"] = 0
-   → stored in _shaderCache[0] = MTL::Function*
-
- registerPipeline("vertex_main", "fragment_main")
-   → calls registerShader for each name, gets back IDs 0 and 1
-   → constructs PipelineKey { vertID=0, fragID=1, fmt=BGRA8 }
-   → stores key in _pipelines[0]
-   → returns PipelineID 0 to caller
-
- meshInstance.pipelineID = 0
-
- buildRenderList each frame
-   → _pipelines[meshInstance.pipelineID]    → PipelineKey { 0, 1, BGRA8 }
-   → _cache[PipelineKey { 0, 1, BGRA8 }]   → MTL::RenderPipelineState*
-   → _shaderCache[0]                        → MTL::Function* (only on cache miss)
+ flow is to generate generate your shaders
+ call register shader
+ stick the return into a pipelinekey (generate for used combinations)
+ 
+ then whenever you need to use it at rendertime - call get or create
+ 
 */
 
 #include <Metal/Metal.hpp>
@@ -67,6 +56,8 @@ public:
     MTL::RenderPipelineState* getOrCreate(const PipelineKey&);
     MTL::Function* getShaderFunction(const std::string& name);
     uint32_t registerShader(const std::string& fnName);
+    PipelineLibrary(MTL::Device* device, MTL::Library* library);
+
 
 private:
     MTL::PixelFormat toMTL(PixelFormat fmt);
