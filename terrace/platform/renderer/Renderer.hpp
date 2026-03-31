@@ -8,22 +8,20 @@
 
 #pragma once
 #include <Metal/Metal.hpp>
-#include "Scene.hpp"
-#include "PipelineLibrary.hpp"
 #include <QuartzCore/QuartzCore.hpp>
-#include <iostream>
-
+#include "backend/RenderBackend.hpp"
 
 class Renderer {
 public:
-    Renderer(MTL::Device* device, Scene* scene);
-    void draw(MTL::RenderPassDescriptor* desc, MTL::Drawable* drawable) ;
-                         
-    
+    Renderer(std::unique_ptr<RenderBackend> backend);
+    void draw(MTL::RenderPassDescriptor*, MTL::Drawable*);
 private:
-    MTL::Device* _device; // Application will own the device, renderer will just have reference
-    Scene*                           _scene; // doesn't make sense for us to own here because we are just rendering
-    MTL::CommandQueue*               _commandQueue;
-    std::unique_ptr<PipelineLibrary> _pipelineLibrary;
-    std::vector<PipelineKey>         _pipelines;
+    std::unique_ptr<RenderBackend> _backend;
 };
+
+inline Renderer::Renderer(std::unique_ptr<RenderBackend> backend)
+    : _backend(std::move(backend)) {}
+
+inline void Renderer::draw(MTL::RenderPassDescriptor* desc, MTL::Drawable* drawable) {
+    _backend->draw(desc, drawable);
+}

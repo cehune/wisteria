@@ -1,12 +1,13 @@
 //
-//  Renderer.cpp
+//  RasterBackend.cpp
 //  terrace
 //
-//  Created by celine on 2026-03-14.
+//  Created by celine on 2026-03-30.
 //
-#include "Renderer.hpp"
 
-Renderer::Renderer(MTL::Device* device, Scene* scene): _device(device), _scene(scene) {
+#include "RasterBackend.hpp"
+
+RasterBackend::RasterBackend(MTL::Device* device, Scene* scene): _device(device), _scene(scene) {
     _commandQueue = device->newCommandQueue();
         
     // Load default .metallib
@@ -24,10 +25,10 @@ Renderer::Renderer(MTL::Device* device, Scene* scene): _device(device), _scene(s
     _pipelines.push_back(key);
     
     lib->release();
-    std::cout << "rendeerer setup all \n";
+    std::cout << "rasterizer setup all done \n";
 }
 
-void Renderer::draw(MTL::RenderPassDescriptor* desc, MTL::Drawable* drawable) {
+void RasterBackend::draw(MTL::RenderPassDescriptor* desc, MTL::Drawable* drawable) {
     MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
     MTL::RenderCommandEncoder* enc = cmd->renderCommandEncoder(desc);
     
@@ -58,6 +59,10 @@ void Renderer::draw(MTL::RenderPassDescriptor* desc, MTL::Drawable* drawable) {
     enc->endEncoding();
     cmd->presentDrawable(drawable);
     cmd->commit();
+}
+
+void RasterBackend::onResize(uint32_t width, uint32_t height) {
+    // TODO: handle resize
 }
 
 /**

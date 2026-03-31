@@ -6,6 +6,7 @@
 //
 
 #include "Application.hpp"
+#include "platform/renderer/backend/RasterBackend.hpp"
 
 Application::Application(MTL::Device* _device) {
     device = _device;
@@ -44,5 +45,6 @@ void Application::init(MTL::Device* device) {
 
     std::cout << "uploaded all \n";
     
-    renderer = std::make_unique<Renderer>(device, scene.get());
+    auto backend = std::make_unique<RasterBackend>(device, scene.get());
+    renderer = std::make_unique<Renderer>(std::move(backend));
 }
