@@ -6,6 +6,7 @@
 //
 
 #import "MetalView.h"
+#include "platform/renderer/backend/RasterBackend.hpp"
 
 @implementation MetalView {
     Application* app; // Pointer to your C++ engine
@@ -18,6 +19,7 @@
     if (self) {
         self.delegate = self;
         self.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
+        self.framebufferOnly = NO;  
         app = new Application((__bridge MTL::Device*)self.device);
     }
 
@@ -29,20 +31,22 @@
 }
 
 - (void)mtkView:(MTKView *)view drawableSizeWillChange:(CGSize)size {
-    // https://developer.apple.com/documentation/metalkit/mtkviewdelegate/mtkview(_:drawablesizewillchange:)
-    return;
+    app->onResize(static_cast<uint32_t>(size.width),
+                  static_cast<uint32_t>(size.height));
 }
-
 
 - (void)drawInMTKView:(MTKView *)view {
     if (!view.currentDrawable || !view.currentRenderPassDescriptor)
         return;
     app->update();
     
-    app->render(
-        (__bridge MTL::RenderPassDescriptor*)view.currentRenderPassDescriptor,
-        (__bridge MTL::Drawable*)view.currentDrawable
-    );
+    FrameContext ctx;
+    ctx.renderPassDesc = (__bridge MTL::RenderPassDescriptor*)view.currentRenderPassDescriptor;
+    ctx.drawable       = (__bridge MTL::Drawable*)view.currentDrawable;
+    ctx.width          = static_cast<uint32_t>(view.drawableSize.width);
+    ctx.height         = static_cast<uint32_t>(view.drawableSize.height);
+
+    app->render(ctx);
 }
     
 - (void)dealloc {

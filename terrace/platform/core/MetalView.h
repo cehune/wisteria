@@ -7,7 +7,7 @@
 
 //We require a bridge for our c++ to actual be aware of the windows. Objective C will act as the bridge
 //so we can use native Cocoa functionality
-
+#pragma once
 #import <MetalKit/MetalKit.h>
 #include "Application.hpp"
 

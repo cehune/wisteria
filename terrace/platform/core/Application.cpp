@@ -16,9 +16,12 @@ Application::Application(MTL::Device* _device) {
 void Application::update() {
     // std::cout << "update";
 }
-void Application::render(MTL::RenderPassDescriptor* desc,
-                         MTL::Drawable* drawable) {
-    renderer->draw(desc, drawable);
+void Application::render(const FrameContext& ctx) {
+    renderer->draw(ctx);
+}
+
+void Application::onResize(uint32_t w, uint32_t h) {
+    renderer->onResize(w, h);
 }
 void Application::shutdown() {
     // std::cout << "shutdown";

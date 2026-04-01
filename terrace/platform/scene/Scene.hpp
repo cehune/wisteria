@@ -9,7 +9,7 @@
 #include <Metal/Metal.hpp>
 #include "engine/scene/Mesh.hpp"
 #include "engine/scene/Core.hpp"
-#include "MeshLoader.hpp"
+//#include "MeshLoader.hpp"
 #include "SceneGeometryPool.hpp"
 #include <simd/simd.h>
 
@@ -39,5 +39,5 @@ private:
     // materials
     SceneGeometryPool               _pool;
     MTL::Buffer*                    _materialBuffer = nil;
-    MeshLoader                      _loader;
+    //MeshLoader                      _loader;
 };

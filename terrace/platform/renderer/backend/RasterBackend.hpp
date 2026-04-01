@@ -16,7 +16,7 @@ class RasterBackend : public RenderBackend {
 public:
     RasterBackend(MTL::Device* device, Scene* scene);
     ~RasterBackend() = default;
-    void draw(MTL::RenderPassDescriptor* desc, MTL::Drawable* drawable) override;
+    void draw(const FrameContext& ctx) override;
     void onResize(uint32_t width, uint32_t height) override;
 
 private:
