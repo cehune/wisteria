@@ -28,9 +28,9 @@ RasterBackend::RasterBackend(MTL::Device* device, Scene* scene): _device(device)
     std::cout << "rasterizer setup all done \n";
 }
 
-void RasterBackend::draw(MTL::RenderPassDescriptor* desc, MTL::Drawable* drawable) {
+void RasterBackend::draw(const FrameContext& ctx) {
     MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
-    MTL::RenderCommandEncoder* enc = cmd->renderCommandEncoder(desc);
+    MTL::RenderCommandEncoder* enc = cmd->renderCommandEncoder(ctx.renderPassDesc);
     
     // set the pipeline state
     PipelineKey key = _pipelines[0];
@@ -57,7 +57,7 @@ void RasterBackend::draw(MTL::RenderPassDescriptor* desc, MTL::Drawable* drawabl
     }
         
     enc->endEncoding();
-    cmd->presentDrawable(drawable);
+    cmd->presentDrawable(ctx.drawable);
     cmd->commit();
 }
 

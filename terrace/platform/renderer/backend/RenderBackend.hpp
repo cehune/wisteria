@@ -8,9 +8,17 @@
 #include <Metal/Metal.hpp>
 #include "Scene.hpp"
 
+struct FrameContext {
+    MTL::RenderPassDescriptor* renderPassDesc;  // null for compute-only backends
+    MTL::Drawable*             drawable;
+    uint32_t                   width;
+    uint32_t                   height;
+};
+
 class RenderBackend {
 public:
     virtual ~RenderBackend() = default;
-    virtual void draw(MTL::RenderPassDescriptor* desc, MTL::Drawable* drawable) = 0;
+    virtual void draw(const FrameContext& ctx) = 0;
     virtual void onResize(uint32_t width, uint32_t height) = 0;
 };
+

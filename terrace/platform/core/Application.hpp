@@ -8,6 +8,8 @@
 #pragma once
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
+#include "platform/renderer/backend/RenderBackend.hpp"
+#include "platform/renderer/backend/PathTracerBackend.hpp"
 #include <iostream>
 #include "Renderer.hpp"
 #include "Scene.hpp"
@@ -17,9 +19,9 @@ public:
     // Override if we do a non-metal version of this codebase
     Application(MTL::Device* _device);
     void update();
-    void render(MTL::RenderPassDescriptor* desc, MTL::Drawable* drawable);
+    void render(const FrameContext& ctx);
+    void onResize(uint32_t width, uint32_t height);
     void shutdown();
-
     void run();
         
 private:
