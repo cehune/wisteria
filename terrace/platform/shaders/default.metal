@@ -26,10 +26,16 @@ struct VertexOut {
 
 vertex VertexOut vertex_main(
     uint vid [[vertex_id]],
-    device VertexIn* verts [[buffer(0)]]) {
-    
+    device VertexIn* verts [[buffer(0)]],
+    constant float2& viewportSize [[buffer(1)]])   // pass {W, H} from CPU
+{
     VertexOut out;
-    out.position = verts[vid].position;
+    float aspect = viewportSize.x / viewportSize.y;
+
+    float4 pos = verts[vid].position;
+    pos.x /= aspect;   // compress x so world units are square on screen
+
+    out.position = pos;
     out.color    = verts[vid].color;
     out.normal   = verts[vid].normal;
     out.uv       = verts[vid].uv;

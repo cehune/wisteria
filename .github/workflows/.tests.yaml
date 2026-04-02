@@ -1,0 +1,11 @@
+name: unit tests
+
+on:
+pull_request:
+branches: [main]
+
+jobs:
+run_tests:
+runs-on: macos-latest
+steps:
+- uses: actions/checkout@v4

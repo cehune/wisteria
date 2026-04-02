@@ -41,6 +41,9 @@ void RasterBackend::draw(const FrameContext& ctx) {
     }
     enc->setRenderPipelineState(pso);
     
+    simd::float2 viewport = { (float)ctx.width, (float)ctx.height };
+    enc->setVertexBytes(&viewport, sizeof(viewport), 1);  // [[buffer(1)]]
+    
     SceneGeometryPool& pool = _scene->geometryPool();
     //std::cout << "Scene mesh count: " << (_scene->meshes().size()) << std::endl;
     
