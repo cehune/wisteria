@@ -9,7 +9,7 @@
 #include <cstdint>
 #include "engine/geometry/Config.hpp"
 
-using PipelineID = uint32_t;       // ← just a uint32_t
+using PipelineID = uint32_t;
 
 // vertexes
 struct Vertex {
@@ -19,5 +19,3 @@ struct Vertex {
     Vec4 tangent;
     Vec4 color;
 };
-
-

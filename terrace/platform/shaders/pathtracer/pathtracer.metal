@@ -6,27 +6,9 @@
 //
 
 #include <metal_stdlib>
+#include "Types.hpp"
+
 using namespace metal;
- 
-struct VertexIn {
-    float4 position;
-    float4 normal;
-    float2 uv;
-    float4 tangent;
-    float4 color;
-};
-
-struct Ray {
-    float3 origin;
-    float3 direction;
-};
-
-struct HitResult {
-    bool hit;
-    float t;
-    float3 position;
-    float2 bary;
-};
 
 static HitResult moller_trumbore(float3 a, float3 b, float3 c, Ray ray, float epsilon) {
     // this is moller trumbore assuming that the its CCW
@@ -66,6 +48,7 @@ kernel void raytrace_kernel(
     const device VertexIn*           vertices [[buffer(0)]],
     const device uint*               indices  [[buffer(1)]],
     constant uint&                   numTri   [[buffer(2)]],
+    constant CameraUniforms&         cam      [[buffer(3)]],
     uint2                            gid      [[thread_position_in_grid]])
 {
     uint W = outTex.get_width();

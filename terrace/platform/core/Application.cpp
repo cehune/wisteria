@@ -48,6 +48,6 @@ void Application::init(MTL::Device* device) {
 
     std::cout << "uploaded all \n";
     
-    auto backend = std::make_unique<RasterBackend>(device, scene.get());
+    auto backend = std::make_unique<PathTracerBackend>(device, scene.get());
     renderer = std::make_unique<Renderer>(std::move(backend));
 }
