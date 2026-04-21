@@ -11,6 +11,7 @@
 #include "platform/scene/Scene.hpp"
 #include <QuartzCore/QuartzCore.hpp>
 #include <iostream>
+#include "engine/scene/CameraUniforms.hpp"
 
 class PathTracerBackend : public RenderBackend {
 public:
@@ -23,12 +24,15 @@ public:
 private:
     void _buildPipeline();
     void _buildOffscreenTexture(uint32_t w, uint32_t h);
-    MTL::Device*                     _device;
-    Scene*                           _scene;
-    MTL::CommandQueue*               _commandQueue;
-    
-    MTL::ComputePipelineState* _pso       = nullptr;
-    MTL::Texture*              _offscreen = nullptr;
+    void _updateCameraBuffer();
+
+    MTL::Device*                    _device;
+    Scene*                          _scene;
+    MTL::CommandQueue*              _commandQueue;
+    MTL::ComputePipelineState*      _pso       = nullptr;
+    MTL::Texture*                   _offscreen = nullptr;
+    MTL::Buffer*                    _cameraBuffer = nullptr;
+    CameraUniformsPT                  _camera;
     uint32_t _width = 0;
     uint32_t _height = 0;
 };

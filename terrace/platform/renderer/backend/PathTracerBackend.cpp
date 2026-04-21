@@ -10,6 +10,7 @@
 PathTracerBackend::PathTracerBackend(MTL::Device* device, Scene* scene): _device(device), _scene(scene) {
     _commandQueue = device->newCommandQueue();
     _buildPipeline();
+    _updateCameraBuffer();
     std::cout << "Pathtracer backend setup done";
 }
 
@@ -49,8 +50,23 @@ void PathTracerBackend::_buildOffscreenTexture(uint32_t w, uint32_t h) {
     _height = h;
 }
 
+void PathTracerBackend::_updateCameraBuffer() {
+    if (!_cameraBuffer) {
+        // TODO: check if resource mode shared is sufficient for now?
+        _cameraBuffer = _device->newBuffer(
+            &_camera, sizeof(CameraUniformsPT), MTL::ResourceStorageModeShared
+        );
+    } else {
+        memcpy(_cameraBuffer->contents(), &_camera, sizeof(CameraUniformsPT));
+    }
+}
+
 void PathTracerBackend::onResize(uint32_t w, uint32_t h) {
     _buildOffscreenTexture(w, h);
+    // camera object actions
+    _width = w;
+    _height = h;
+    _updateCameraBuffer();
 }
 
 // ── Per-frame trace ───────────────────────────────────────────────────────────
@@ -66,7 +82,6 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     MTL::ComputeCommandEncoder* enc = cmd->computeCommandEncoder();
 
     enc->setComputePipelineState(_pso);
-
     // ── One dispatch per mesh, mirroring RasterBackend's per-mesh loop ────────
     for (Mesh& mesh : _scene->meshes()) {
         MTL::Buffer* vb = pool.vertexBufferFor(mesh);
@@ -84,6 +99,7 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
         enc->setBuffer(vb,         0, 0);    // [[buffer(0)]] vertices
         enc->setBuffer(ib,         0, 1);    // [[buffer(1)]] indices
         enc->setBuffer(numTriBuf,  0, 2);    // [[buffer(2)]] numTri
+        enc->setBuffer(_cameraBuffer, 0, 3);
 
         NS::UInteger tw = _pso->threadExecutionWidth();
         NS::UInteger th = _pso->maxTotalThreadsPerThreadgroup() / tw;
