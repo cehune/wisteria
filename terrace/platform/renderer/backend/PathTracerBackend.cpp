@@ -82,36 +82,33 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     MTL::ComputeCommandEncoder* enc = cmd->computeCommandEncoder();
 
     enc->setComputePipelineState(_pso);
-    // ── One dispatch per mesh, mirroring RasterBackend's per-mesh loop ────────
-    for (Mesh& mesh : _scene->meshes()) {
-        MTL::Buffer* vb = pool.vertexBufferFor(mesh);
-        MTL::Buffer* ib = pool.indexBufferFor(mesh);
+    
+    
+    uint32_t totalTri = 0;
+    for (Mesh& m : _scene->meshes()) totalTri += m.numTriangles;
 
-        uint32_t numTri = mesh.numTriangles;
+    MTL::Buffer* vb = pool.mergeVertexBuffer(_device);
+    MTL::Buffer* ib = pool.mergeIndexBuffer(_device);
+    MTL::Buffer* numTriBuf = _device->newBuffer(&totalTri, sizeof(uint32_t), MTL::ResourceStorageModeShared);
 
-        // Build a tiny per-dispatch numTri buffer
-        // (small enough that shared mode + stack alloc is fine)
-        MTL::Buffer* numTriBuf = _device->newBuffer(
-            &numTri, sizeof(uint32_t),
-            MTL::ResourceStorageModeShared);
+    enc->setTexture(_offscreen, 0);
+    enc->setBuffer(vb,        0, 0);
+    enc->setBuffer(ib,        0, 1);
+    enc->setBuffer(numTriBuf, 0, 2);
+    enc->setBuffer(_cameraBuffer, 0, 3);
+    
+    NS::UInteger tw = _pso->threadExecutionWidth();
+    NS::UInteger th = _pso->maxTotalThreadsPerThreadgroup() / tw;
+    MTL::Size threadsPerGroup = MTL::Size::Make(tw, th, 1);
+    MTL::Size threadsPerGrid  = MTL::Size::Make(_width, _height, 1);
 
-        enc->setTexture(_offscreen, 0);      // [[texture(0)]]
-        enc->setBuffer(vb,         0, 0);    // [[buffer(0)]] vertices
-        enc->setBuffer(ib,         0, 1);    // [[buffer(1)]] indices
-        enc->setBuffer(numTriBuf,  0, 2);    // [[buffer(2)]] numTri
-        enc->setBuffer(_cameraBuffer, 0, 3);
-
-        NS::UInteger tw = _pso->threadExecutionWidth();
-        NS::UInteger th = _pso->maxTotalThreadsPerThreadgroup() / tw;
-        MTL::Size threadsPerGroup = MTL::Size::Make(tw, th, 1);
-        MTL::Size threadsPerGrid  = MTL::Size::Make(_width, _height, 1);
-
-        enc->dispatchThreads(threadsPerGrid, threadsPerGroup);
-
-        numTriBuf->release();   // safe: GPU has recorded the reference
-    }
-
+    enc->dispatchThreads(threadsPerGrid, threadsPerGroup);
     enc->endEncoding();
+    
+    vb->release();
+    ib->release();
+    numTriBuf->release();
+
     CA::MetalDrawable* metalDrawable = static_cast<CA::MetalDrawable*>(ctx.drawable);
     MTL::BlitCommandEncoder* blit = cmd->blitCommandEncoder();
     blit->copyFromTexture(_offscreen, metalDrawable->texture());

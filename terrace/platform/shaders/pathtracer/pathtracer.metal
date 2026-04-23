@@ -59,7 +59,7 @@ kernel void raytrace_kernel(
     float2 ndc = uv * 2.0 - 1.0;
     
     Ray ray;
-    ray.origin = float3(0, 0, 1);
+    ray.origin = float3(0, 0, 5);
 
     float aspect = float(W) / float(H);
     float2 ndc_corrected = float2(ndc.x * aspect, -ndc.y);
@@ -71,7 +71,7 @@ kernel void raytrace_kernel(
 
     float4 color = float4(0.0, 0.0, 0.0, 1);
     for (uint i = 0; i < numTri; i++) {
-        VertexIn vA = vertices[indices[i * 3 + 0]];
+        VertexIn vA = vertices[indices[i * 3]];
         VertexIn vB = vertices[indices[i * 3 + 1]];
         VertexIn vC = vertices[indices[i * 3 + 2]];
 
@@ -79,9 +79,16 @@ kernel void raytrace_kernel(
         if (hit.hit && hit.t < closest.t) {
             closest = hit;
             float wA = 1.0 - hit.bary.x - hit.bary.y;
-            color = float4(wA * vA.color.xyz
-                         + hit.bary.x * vB.color.xyz
-                         + hit.bary.y * vC.color.xyz, 1.0);
+            float wB = hit.bary.x;
+            float wC = hit.bary.y;
+
+            float3 normal = normalize(wA * vA.normal.xyz +
+                                          wB * vB.normal.xyz +
+                                          wC * vC.normal.xyz);
+            color = float4(normal * 0.5 + 0.5, 1.0);
+//            color = float4(wA * vA.color.xyz
+//                         + hit.bary.x * vB.color.xyz
+//                         + hit.bary.y * vC.color.xyz, 1.0);
         }
     }
 
