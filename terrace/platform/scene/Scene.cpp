@@ -6,7 +6,7 @@
 //
 
 #include "Scene.hpp"
-
+#include <iostream>
 
 void Scene::addMeshDirect(Mesh& mesh,
                            const std::vector<Vertex>& verts,
@@ -16,20 +16,14 @@ void Scene::addMeshDirect(Mesh& mesh,
     _pool.uploadMesh(mesh, verts, indices, device);
     mesh.index = _meshes.size();
     _meshes.push_back(mesh);
-    
-    return;
 }
 
-void Scene::addMeshInstance(Mesh& mesh, const Mat4& transform)
+void Scene::addMeshInstance(std::string& mesh_file_path, MTL::Device* device)
 {
-    MeshInstance instance;
-    
-    instance.meshIndex = mesh.index;
-    
-    instance.transform = transform;
-    
-    instance.index = _meshInstances.size();
-    instance.boundsMin = simd_mul(transform, mesh.localBoundsMin);
-    instance.boundsMax = simd_mul(transform, mesh.localBoundsMax);
-    return;
+    Mesh mesh;
+    // TODO: add check for mesh hashing, implement mesh instance vs mesh object
+    _pool.uploadMeshFile(mesh, mesh_file_path, device);
+    std::cout << "woawh";
+    mesh.index = _meshes.size();
+    _meshes.push_back(mesh);
 }
