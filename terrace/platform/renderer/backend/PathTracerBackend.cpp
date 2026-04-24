@@ -76,13 +76,12 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     if (!_offscreen) {
         _buildOffscreenTexture(ctx.width, ctx.height);
     }
-
+    
     SceneGeometryPool& pool = _scene->geometryPool();
     MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
     MTL::ComputeCommandEncoder* enc = cmd->computeCommandEncoder();
-
+    // pso is built from buildPipeline based on a given metal shader
     enc->setComputePipelineState(_pso);
-    
     
     uint32_t totalTri = 0;
     for (Mesh& m : _scene->meshes()) totalTri += m.numTriangles;
@@ -97,6 +96,7 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     enc->setBuffer(numTriBuf, 0, 2);
     enc->setBuffer(_cameraBuffer, 0, 3);
     
+    // run the kernel function per pixel per thread, (makes as many threads as pixels)
     NS::UInteger tw = _pso->threadExecutionWidth();
     NS::UInteger th = _pso->maxTotalThreadsPerThreadgroup() / tw;
     MTL::Size threadsPerGroup = MTL::Size::Make(tw, th, 1);
@@ -108,12 +108,14 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     vb->release();
     ib->release();
     numTriBuf->release();
-
+    
+    // kinda like dma, need to copy from off screen texture to actual texture
     CA::MetalDrawable* metalDrawable = static_cast<CA::MetalDrawable*>(ctx.drawable);
     MTL::BlitCommandEncoder* blit = cmd->blitCommandEncoder();
     blit->copyFromTexture(_offscreen, metalDrawable->texture());
     blit->endEncoding();
 
+    // schedules to appear in the window
     cmd->presentDrawable(ctx.drawable);
     cmd->commit();
 }
