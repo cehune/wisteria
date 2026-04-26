@@ -66,6 +66,7 @@ void RasterBackend::draw(const FrameContext& ctx) {
     cmd->addCompletedHandler([this](MTL::CommandBuffer*) {
         dispatch_semaphore_signal(_camBufferSemaphore);
     });
+    //enc->setCullMode(MTL::CullModeNone);
     
     // retrieve pool
     SceneGeometryPool& pool = _scene->geometryPool();
