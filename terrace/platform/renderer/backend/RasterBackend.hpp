@@ -9,6 +9,7 @@
 #include <Metal/Metal.hpp>
 #include "platform/renderer/PipelineLibrary.hpp"
 #include "platform/scene/Scene.hpp"
+#include "engine/scene/Camera.hpp"
 #include "engine/scene/CameraUniforms.hpp"
 #include <iostream>
 
@@ -21,8 +22,6 @@ public:
     void onResize(uint32_t width, uint32_t height) override;
 
 private:
-    simd_float4x4 _buildProjectionMatrix() const;
-    simd_float4x4 _buildViewMatrix() const;
     void          _updateCameraBuffer();
     
     MTL::Device*                     _device = nullptr;
@@ -31,6 +30,7 @@ private:
     std::unique_ptr<PipelineLibrary> _pipelineLibrary;
     std::vector<PipelineKey>         _pipelines;
     MTL::Buffer*                     _cameraBuffer = nullptr;
+    Camera                           _camera;
     
     uint32_t _width  = 0;
     uint32_t _height = 0;

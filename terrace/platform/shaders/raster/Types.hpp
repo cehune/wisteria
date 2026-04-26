@@ -29,7 +29,5 @@ struct VertexOut {
 };
 
 struct CameraUniforms {
-    float4 model;
-    float4 view;
-    float4 projection;
+    float4x4 viewProjection;
 };
