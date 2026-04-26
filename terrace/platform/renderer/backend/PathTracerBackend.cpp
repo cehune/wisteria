@@ -46,8 +46,6 @@ void PathTracerBackend::_buildOffscreenTexture(uint32_t w, uint32_t h) {
     td->setStorageMode(MTL::StorageModePrivate);  // GPU-only, blit to drawable after
 
     _offscreen = _device->newTexture(td);
-    _width  = w;
-    _height = h;
 }
 
 void PathTracerBackend::_updateCameraBuffer() {

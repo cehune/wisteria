@@ -44,16 +44,14 @@ void Application::init(MTL::Device* device) {
     };
     
     std::vector<uint32_t> indices = {0, 1, 2};
-    std::cout << "woawh1";
 
     std::string cow = "/Users/celine/Documents/projects/terrace/terrace/samples/cow.obj";
     scene->addMeshInstance(cow, device);
-    //std::cout << "woawh2";
 
-    scene->addMeshDirect(mesh, verts, indices, device);
+    //scene->addMeshDirect(mesh, verts, indices, device);
 
     std::cout << "uploaded all \n";
     
-    auto backend = std::make_unique<PathTracerBackend>(device, scene.get());
+    auto backend = std::make_unique<RasterBackend>(device, scene.get());
     renderer = std::make_unique<Renderer>(std::move(backend));
 }
