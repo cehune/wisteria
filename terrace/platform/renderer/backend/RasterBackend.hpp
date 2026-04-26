@@ -12,7 +12,7 @@
 #include "engine/scene/Camera.hpp"
 #include "engine/scene/CameraUniforms.hpp"
 #include <iostream>
-
+#include <semaphore>
 
 class RasterBackend : public RenderBackend {
 public:
@@ -29,7 +29,6 @@ private:
     Scene*                           _scene;
     std::unique_ptr<PipelineLibrary> _pipelineLibrary;
     std::vector<PipelineKey>         _pipelines;
-    MTL::Buffer*                     _cameraBuffer = nullptr;
     Camera                           _camera;
     
     uint32_t _width  = 0;
@@ -39,4 +38,15 @@ private:
     float _fov    = 60.0f * M_PI / 180;
     float _near   = 0.1f;
     float _far    = 100.0f;
+    
+    /*
+     TRIPLE BUFFER
+     Since on the mac, the CPU and GPU work at the same time, we want to avoid writing and reading
+     at the same time. Use 3 buffers frame by frame, where GPU will use the last, and then CPU will edit
+     the next. use 3 buffer instead of 2 to prevent any waiting.
+     */
+    static constexpr uint8_t    _maxBuffers = 3;
+    MTL::Buffer*                _cameraBuffers[_maxBuffers];
+    uint8_t                     _frameIndex = 0;
+    dispatch_semaphore_t        _camBufferSemaphore;
 };

@@ -8,13 +8,17 @@
 #include "RasterBackend.hpp"
 
 RasterBackend::~RasterBackend() {
-    if (_cameraBuffer) {
-        _cameraBuffer->release();
+    for (auto& buf: _cameraBuffers) {
+        if (buf) {
+            buf->release();
+            buf = nullptr;
+        }
     }
-    _cameraBuffer = nullptr;
 }
 
 RasterBackend::RasterBackend(MTL::Device* device, Scene* scene): _device(device), _scene(scene), _aspect(1.0) {
+    
+    _camBufferSemaphore = dispatch_semaphore_create(_maxBuffers);
     _commandQueue = device->newCommandQueue();
         
     // Load default .metallib
@@ -38,8 +42,7 @@ RasterBackend::RasterBackend(MTL::Device* device, Scene* scene): _device(device)
 
 void RasterBackend::draw(const FrameContext& ctx) {
     // build camera context and projection matrices
-    _updateCameraBuffer();
-    
+    dispatch_semaphore_wait(_camBufferSemaphore, DISPATCH_TIME_FOREVER); // prevent concurrent read / write to same cam buffer
     MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
     MTL::RenderCommandEncoder* enc = cmd->renderCommandEncoder(ctx.renderPassDesc);
     
@@ -52,8 +55,17 @@ void RasterBackend::draw(const FrameContext& ctx) {
     }
     enc->setRenderPipelineState(pso);
     
-    enc->setVertexBuffer(_cameraBuffer, 0, 1); // camera
+    // CAMERA with TRIPLE BUFFER
+    _frameIndex = (_frameIndex + 1) % _maxBuffers;
+
+    _updateCameraBuffer();
+
+    enc->setVertexBuffer(_cameraBuffers[_frameIndex], 0, 1); // camera
+    cmd->addCompletedHandler([this](MTL::CommandBuffer*) {
+        dispatch_semaphore_signal(_camBufferSemaphore);
+    });
     
+    // retrieve pool
     SceneGeometryPool& pool = _scene->geometryPool();
     std::cout << "Scene mesh count: " << (_scene->meshes().size()) << std::endl;
     
@@ -91,10 +103,10 @@ void RasterBackend::_updateCameraBuffer() {
     CameraUniformsRaster cam;
     cam.viewProjection = simd_mul(_camera.projectionMatrix(_aspect), _camera.viewMatrix());
     
-    if (!_cameraBuffer) {
-        _cameraBuffer = _device->newBuffer(&cam, sizeof(CameraUniformsRaster), MTL::ResourceStorageModeShared);
+    if (!_cameraBuffers[_frameIndex]) {
+        _cameraBuffers[_frameIndex] = _device->newBuffer(&cam, sizeof(CameraUniformsRaster), MTL::ResourceStorageModeShared);
     } else { // memcopy if avail
-        memcpy(_cameraBuffer->contents(), &cam, sizeof(CameraUniformsRaster));
+        memcpy(_cameraBuffers[_frameIndex]->contents(), &cam, sizeof(CameraUniformsRaster));
     }
 }
 
