@@ -27,6 +27,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		72124D8B2F9DD407004BC7DE /* tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		728E9CAF2F7D6F8600744E5F /* terrace.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = terrace.xcodeproj; sourceTree = "<group>"; };
 		729F8B212F7CB06B004A286B /* terrace.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = terrace.xcodeproj; sourceTree = "<group>"; };
 		72C8D7162F660FD700E6F167 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
@@ -37,15 +38,40 @@
 		72F4B07C2F62456D0084357C /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		72124DDB2F9DD89C004BC7DE /* Exceptions for "terrace" folder in "tests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				engine/scene/Camera.cpp,
+			);
+			target = 72124D8A2F9DD407004BC7DE /* tests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		72124D8C2F9DD407004BC7DE /* tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = tests;
+			sourceTree = "<group>";
+		};
 		72F4B06F2F6243DC0084357C /* terrace */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				72124DDB2F9DD89C004BC7DE /* Exceptions for "terrace" folder in "tests" target */,
+			);
 			path = terrace;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		72124D882F9DD407004BC7DE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		72F4B06A2F6243DC0084357C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -79,6 +105,7 @@
 			isa = PBXGroup;
 			children = (
 				72F4B06F2F6243DC0084357C /* terrace */,
+				72124D8C2F9DD407004BC7DE /* tests */,
 				72F4B0772F6245510084357C /* Frameworks */,
 				72F4B06E2F6243DC0084357C /* Products */,
 			);
@@ -88,6 +115,7 @@
 			isa = PBXGroup;
 			children = (
 				72F4B06D2F6243DC0084357C /* terrace */,
+				72124D8B2F9DD407004BC7DE /* tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -107,6 +135,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		72124D8A2F9DD407004BC7DE /* tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 72124D8F2F9DD407004BC7DE /* Build configuration list for PBXNativeTarget "tests" */;
+			buildPhases = (
+				72124D872F9DD407004BC7DE /* Sources */,
+				72124D882F9DD407004BC7DE /* Frameworks */,
+				72124D892F9DD407004BC7DE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				72124D8C2F9DD407004BC7DE /* tests */,
+			);
+			name = tests;
+			packageProductDependencies = (
+			);
+			productName = tests;
+			productReference = 72124D8B2F9DD407004BC7DE /* tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		72F4B06C2F6243DC0084357C /* terrace */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 72F4B0742F6243DC0084357C /* Build configuration list for PBXNativeTarget "terrace" */;
@@ -138,6 +188,9 @@
 				BuildIndependentTargetsInParallel = 1;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
+					72124D8A2F9DD407004BC7DE = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
 					72F4B06C2F6243DC0084357C = {
 						CreatedOnToolsVersion = 26.3;
 						LastSwiftMigration = 2630;
@@ -169,11 +222,29 @@
 			projectRoot = "";
 			targets = (
 				72F4B06C2F6243DC0084357C /* terrace */,
+				72124D8A2F9DD407004BC7DE /* tests */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		72124D892F9DD407004BC7DE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		72124D872F9DD407004BC7DE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		72F4B0692F6243DC0084357C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -184,6 +255,46 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		72124D902F9DD407004BC7DE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/include/metal-cpp",
+					"$(SRCROOT)/terrace",
+					"$(SRCROOT)/include",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cehune.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Debug;
+		};
+		72124D912F9DD407004BC7DE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/include/metal-cpp",
+					"$(SRCROOT)/terrace",
+					"$(SRCROOT)/include",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cehune.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Release;
+		};
 		72F4B0722F6243DC0084357C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -339,6 +450,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		72124D8F2F9DD407004BC7DE /* Build configuration list for PBXNativeTarget "tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				72124D902F9DD407004BC7DE /* Debug */,
+				72124D912F9DD407004BC7DE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		72F4B0682F6243DC0084357C /* Build configuration list for PBXProject "terrace" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
