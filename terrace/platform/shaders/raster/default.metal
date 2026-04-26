@@ -20,6 +20,7 @@ vertex VertexOut vertex_main(
     out.position = cam.viewProjection * world_position;
     //out.color = verts[vid].color;
     out.normal = verts[vid].normal;
+    // temp until we have colours and materials
     out.color = {out.normal[0] * 0.5 + 0.5, out.normal[1] * 0.5 + 0.5, out.normal[2] * 0.5 + 0.5, 1.0};
     out.tangent = verts[vid].tangent;
     out.uv = verts[vid].uv;
