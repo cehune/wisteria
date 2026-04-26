@@ -17,9 +17,9 @@ struct CameraUniformsPT {
 
 // We don't actually need the model matrix, thats stored per mesh
 struct CameraUniformsRaster {
-    Vec4 view;
-    Vec4 projection;
-    Vec4 viewProjection;
+    simd_float4x4 view;
+    simd_float4x4 projection;
+    simd_float4x4 viewProjection;
     Vec3 worldPosition;
     float pad; // just for extra padding alignment
 };
