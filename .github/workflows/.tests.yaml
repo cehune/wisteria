@@ -1,8 +1,10 @@
 name: unit tests
 
 on:
-pull_request:
-branches: [main]
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   test:
@@ -12,5 +14,6 @@ jobs:
       - name: Run CPU tests
         run: |
           xcodebuild test \
+            -project terrace.xcodeproj \
             -scheme "tests" \
             -destination "platform=macOS"
