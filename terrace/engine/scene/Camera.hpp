@@ -7,7 +7,7 @@
 #pragma once
 #include "engine/geometry/Config.hpp"
 
-struct Camera { // mainly for the raster because we need to control it
+class Camera { // mainly for the raster because we need to control it
 private:
     float _fov, _near, _far;
     simd_quatf _orientation;
