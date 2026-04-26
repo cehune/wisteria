@@ -9,20 +9,34 @@
 #include <Metal/Metal.hpp>
 #include "platform/renderer/PipelineLibrary.hpp"
 #include "platform/scene/Scene.hpp"
+#include "engine/scene/CameraUniforms.hpp"
 #include <iostream>
 
 
 class RasterBackend : public RenderBackend {
 public:
     RasterBackend(MTL::Device* device, Scene* scene);
-    ~RasterBackend() = default;
+    ~RasterBackend();
     void draw(const FrameContext& ctx) override;
     void onResize(uint32_t width, uint32_t height) override;
 
 private:
-    MTL::Device*                     _device;
-    MTL::CommandQueue*               _commandQueue;
+    simd_float4x4 _buildProjectionMatrix() const;
+    simd_float4x4 _buildViewMatrix() const;
+    void          _updateCameraBuffer();
+    
+    MTL::Device*                     _device = nullptr;
+    MTL::CommandQueue*               _commandQueue = nullptr;
     Scene*                           _scene;
     std::unique_ptr<PipelineLibrary> _pipelineLibrary;
     std::vector<PipelineKey>         _pipelines;
+    MTL::Buffer*                     _cameraBuffer = nullptr;
+    
+    uint32_t _width  = 0;
+    uint32_t _height = 0;
+    
+    float _aspect = 1.0f;
+    float _fov    = 60.0f * M_PI / 180;
+    float _near   = 0.1f;
+    float _far    = 100.0f;
 };
