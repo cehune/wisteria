@@ -38,6 +38,8 @@ RasterBackend::RasterBackend(MTL::Device* device, Scene* scene): _device(device)
     lib->release();
 
     std::cout << "rasterizer setup all done \n";
+    
+    _camera.position = {0,0,20};
 }
 
 void RasterBackend::draw(const FrameContext& ctx) {
@@ -67,7 +69,6 @@ void RasterBackend::draw(const FrameContext& ctx) {
     
     // retrieve pool
     SceneGeometryPool& pool = _scene->geometryPool();
-    std::cout << "Scene mesh count: " << (_scene->meshes().size()) << std::endl;
     
     // make a draw per mesh
     for (Mesh& mesh: _scene->meshes()) {

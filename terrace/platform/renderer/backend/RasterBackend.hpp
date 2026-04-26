@@ -22,7 +22,7 @@ public:
     void onResize(uint32_t width, uint32_t height) override;
 
 private:
-    void          _updateCameraBuffer();
+    void _updateCameraBuffer();
     
     MTL::Device*                     _device = nullptr;
     MTL::CommandQueue*               _commandQueue = nullptr;
