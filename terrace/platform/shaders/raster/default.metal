@@ -17,7 +17,7 @@ vertex VertexOut vertex_main(
 {
     VertexOut out;
     float4 world_position = verts[vid].position;
-    out.position = cam.view * cam.model * cam.projection * world_position;
+    out.position = cam.viewProjection * world_position;
     out.color = verts[vid].color;
     out.normal = verts[vid].normal;
     out.tangent = verts[vid].tangent;
