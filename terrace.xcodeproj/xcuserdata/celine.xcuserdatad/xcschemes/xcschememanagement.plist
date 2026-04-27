@@ -19,6 +19,11 @@
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> b688762 (Shit)
 		<key>tests.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
@@ -32,6 +37,10 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
+>>>>>>> b688762 (Shit)
 	</dict>
 </dict>
 </plist>

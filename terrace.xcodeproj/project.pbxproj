@@ -27,9 +27,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+<<<<<<< HEAD
 		72124D8B2F9DD407004BC7DE /* tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		728E9CAF2F7D6F8600744E5F /* terrace.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = terrace.xcodeproj; sourceTree = "<group>"; };
 		729F8B212F7CB06B004A286B /* terrace.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = terrace.xcodeproj; sourceTree = "<group>"; };
+=======
+>>>>>>> b688762 (Shit)
 		72C8D7162F660FD700E6F167 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		72C8D71F2F66298A00E6F167 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		72F4B06D2F6243DC0084357C /* terrace */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = terrace; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -42,7 +45,12 @@
 		72124DDB2F9DD89C004BC7DE /* Exceptions for "terrace" folder in "tests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+<<<<<<< HEAD
 				engine/scene/Camera.cpp,
+=======
+				engine/scene/Camera/Camera.cpp,
+				engine/scene/Camera/OrbitController.cpp,
+>>>>>>> b688762 (Shit)
 			);
 			target = 72124D8A2F9DD407004BC7DE /* tests */;
 		};
@@ -87,20 +95,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		728E9CDC2F7D6F8600744E5F /* Products */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		729F8B262F7CB06B004A286B /* Products */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		72F4B0642F6243DC0084357C = {
 			isa = PBXGroup;
 			children = (
@@ -209,16 +203,6 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 72F4B06E2F6243DC0084357C /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 729F8B262F7CB06B004A286B /* Products */;
-					ProjectRef = 729F8B212F7CB06B004A286B /* terrace.xcodeproj */;
-				},
-				{
-					ProductGroup = 728E9CDC2F7D6F8600744E5F /* Products */;
-					ProjectRef = 728E9CAF2F7D6F8600744E5F /* terrace.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				72F4B06C2F6243DC0084357C /* terrace */,
