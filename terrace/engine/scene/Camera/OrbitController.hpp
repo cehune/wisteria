@@ -1,5 +1,5 @@
 //
-//  OrbitController.cpp
+//  OrbitController.hpp
 //  terrace
 //
 //  Created by celine on 2026-04-27.
@@ -7,7 +7,9 @@
 
 #pragma once
 #include "CameraController.hpp"
-#include "simd/simd.h"
+#include <simd/simd.h>
+#include <algorithm>
+#include <cmath>
 
 class OrbitController : public CameraController {
 public:
@@ -17,13 +19,25 @@ public:
     void onKey(int key, bool pressed) override;
 
 private:
-    Vec3  _target      = {0, 0, 0};
+    simd_quatf quatFromAxes(const simd_float3& right, 
+                            const simd_float3& up, 
+                            const simd_float3& forward);
+
+    simd_float3  _target      = {0, 0, 0};
     float _radius      = 5.0f;
     float _yaw         = 0.0f;
     float _pitch       = 0.3f;
     float _sensitivity = 0.005f;
     float _zoomSpeed   = 0.3f;
 };
+
+inline simd_quatf OrbitController::quatFromAxes(const simd_float3& right,
+                               const simd_float3& up,
+                               const simd_float3& forward)
+{
+    simd_float3x3 m = {right, up, forward};
+    return simd_quaternion(m);
+}
 
 inline CameraState OrbitController::update(const CameraState& current, float dt) {
     CameraState next = current;
@@ -36,12 +50,17 @@ inline CameraState OrbitController::update(const CameraState& current, float dt)
     
     // Draw a box with a r vector going to opposite corners.
     // the direction angles are derived with yaw defined as 0 from the z axis.
-    Vec3 dir      = {cosPitch * sinYaw, sinPitch, cosPitch * cosYaw};
+    simd_float3 dir      = {cosPitch * sinYaw, sinPitch, cosPitch * cosYaw};
     next.position = _target + _radius * dir;
 
     // dir is already unit vector for the position of camera to target
-    Vec3 right        = simd_normalize(simd_cross(-dir, {0, 1, 0}));
-    Vec3 up           = simd_cross(right, -dir);
+    simd_float3 worldUp = {0, 1, 0}; // prevent exploding when dir near up
+    if (fabs(simd_dot(dir, worldUp)) > 0.99f) {
+        worldUp = {1, 0, 0}; // avoid degeneracy
+    }
+
+    simd_float3 right = simd_normalize(simd_cross(worldUp, -dir));
+    simd_float3 up    = simd_cross(right, -dir);
                           
     next.orientation  = quatFromAxes(right, up, dir);
     return next;
@@ -49,7 +68,7 @@ inline CameraState OrbitController::update(const CameraState& current, float dt)
 
 inline void OrbitController::onMouseDrag(float dx, float dy) {
     _yaw  += dx * _sensitivity;
-    _pitch = std::clamp(_pitch + dy * _sensitivity, -M_PI_2 + 0.01f, M_PI_2 - 0.01f);
+    _pitch = std::min(std::max(_pitch + dy * _sensitivity, (float)-M_PI_2 + 0.01f), (float)M_PI_2 - 0.01f);
 }
 
 inline void OrbitController::onScroll(float delta) {

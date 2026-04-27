@@ -9,7 +9,7 @@
 #include <Metal/Metal.hpp>
 #include "platform/renderer/PipelineLibrary.hpp"
 #include "platform/scene/Scene.hpp"
-#include "engine/scene/Camera.hpp"
+#include "engine/scene/Camera/Camera.hpp"
 #include "engine/scene/CameraUniforms.hpp"
 #include <iostream>
 #include <semaphore>

@@ -16,11 +16,10 @@ RasterBackend::~RasterBackend() {
     }
 }
 
-RasterBackend::RasterBackend(MTL::Device* device, Scene* scene): _device(device), _scene(scene), _aspect(1.0) {
+RasterBackend::RasterBackend(MTL::Device* device, Scene* scene): _device(device), _scene(scene), _aspect(800.0f/600.0f) {
     
     _camBufferSemaphore = dispatch_semaphore_create(_maxBuffers);
     _commandQueue = device->newCommandQueue();
-        
     // Load default .metallib
     MTL::Library* lib = device->newDefaultLibrary();
     

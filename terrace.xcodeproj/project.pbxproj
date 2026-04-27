@@ -41,6 +41,7 @@
 		72F4B07C2F62456D0084357C /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
+<<<<<<< HEAD
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		72124DDB2F9DD89C004BC7DE /* Exceptions for "terrace" folder in "tests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
@@ -56,6 +57,8 @@
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
+=======
+>>>>>>> ae1d144 (Camera Controller base)
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		72124D8C2F9DD407004BC7DE /* tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
