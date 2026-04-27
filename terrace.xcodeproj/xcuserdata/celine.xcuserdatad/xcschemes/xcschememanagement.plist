@@ -17,12 +17,17 @@
 		<key>terrace.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>0</integer>
+			<integer>1</integer>
 		</dict>
+<<<<<<< HEAD
+=======
+<<<<<<< Updated upstream
+=======
+>>>>>>> b688762 (Shit)
 		<key>tests.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>1</integer>
+			<integer>0</integer>
 		</dict>
 	</dict>
 	<key>SuppressBuildableAutocreation</key>
@@ -32,6 +37,10 @@
 			<key>primary</key>
 			<true/>
 		</dict>
+<<<<<<< HEAD
+=======
+>>>>>>> Stashed changes
+>>>>>>> b688762 (Shit)
 	</dict>
 </dict>
 </plist>

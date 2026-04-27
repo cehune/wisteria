@@ -27,9 +27,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		72124D8B2F9DD407004BC7DE /* tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		728E9CAF2F7D6F8600744E5F /* terrace.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = terrace.xcodeproj; sourceTree = "<group>"; };
-		729F8B212F7CB06B004A286B /* terrace.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = terrace.xcodeproj; sourceTree = "<group>"; };
+		72023FD72F9F49BF0078C942 /* tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		72C8D7162F660FD700E6F167 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		72C8D71F2F66298A00E6F167 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		72F4B06D2F6243DC0084357C /* terrace */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = terrace; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -39,17 +37,17 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		72124DDB2F9DD89C004BC7DE /* Exceptions for "terrace" folder in "tests" target */ = {
+		72023FE22F9F4A2B0078C942 /* Exceptions for "terrace" folder in "tests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				engine/scene/Camera.cpp,
+				engine/scene/Camera/Camera.cpp,
 			);
-			target = 72124D8A2F9DD407004BC7DE /* tests */;
+			target = 72023FD62F9F49BF0078C942 /* tests */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		72124D8C2F9DD407004BC7DE /* tests */ = {
+		72023FD82F9F49BF0078C942 /* tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = tests;
 			sourceTree = "<group>";
@@ -57,7 +55,7 @@
 		72F4B06F2F6243DC0084357C /* terrace */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				72124DDB2F9DD89C004BC7DE /* Exceptions for "terrace" folder in "tests" target */,
+				72023FE22F9F4A2B0078C942 /* Exceptions for "terrace" folder in "tests" target */,
 			);
 			path = terrace;
 			sourceTree = "<group>";
@@ -65,7 +63,7 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		72124D882F9DD407004BC7DE /* Frameworks */ = {
+		72023FD42F9F49BF0078C942 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -87,25 +85,11 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		728E9CDC2F7D6F8600744E5F /* Products */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		729F8B262F7CB06B004A286B /* Products */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		72F4B0642F6243DC0084357C = {
 			isa = PBXGroup;
 			children = (
 				72F4B06F2F6243DC0084357C /* terrace */,
-				72124D8C2F9DD407004BC7DE /* tests */,
+				72023FD82F9F49BF0078C942 /* tests */,
 				72F4B0772F6245510084357C /* Frameworks */,
 				72F4B06E2F6243DC0084357C /* Products */,
 			);
@@ -115,7 +99,7 @@
 			isa = PBXGroup;
 			children = (
 				72F4B06D2F6243DC0084357C /* terrace */,
-				72124D8B2F9DD407004BC7DE /* tests.xctest */,
+				72023FD72F9F49BF0078C942 /* tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -135,26 +119,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		72124D8A2F9DD407004BC7DE /* tests */ = {
+		72023FD62F9F49BF0078C942 /* tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 72124D8F2F9DD407004BC7DE /* Build configuration list for PBXNativeTarget "tests" */;
+			buildConfigurationList = 72023FDD2F9F49BF0078C942 /* Build configuration list for PBXNativeTarget "tests" */;
 			buildPhases = (
-				72124D872F9DD407004BC7DE /* Sources */,
-				72124D882F9DD407004BC7DE /* Frameworks */,
-				72124D892F9DD407004BC7DE /* Resources */,
+				72023FD32F9F49BF0078C942 /* Sources */,
+				72023FD42F9F49BF0078C942 /* Frameworks */,
+				72023FD52F9F49BF0078C942 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				72124D8C2F9DD407004BC7DE /* tests */,
+				72023FD82F9F49BF0078C942 /* tests */,
 			);
 			name = tests;
 			packageProductDependencies = (
 			);
 			productName = tests;
-			productReference = 72124D8B2F9DD407004BC7DE /* tests.xctest */;
+			productReference = 72023FD72F9F49BF0078C942 /* tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		72F4B06C2F6243DC0084357C /* terrace */ = {
@@ -188,7 +172,7 @@
 				BuildIndependentTargetsInParallel = 1;
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
-					72124D8A2F9DD407004BC7DE = {
+					72023FD62F9F49BF0078C942 = {
 						CreatedOnToolsVersion = 26.4.1;
 					};
 					72F4B06C2F6243DC0084357C = {
@@ -209,26 +193,16 @@
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 72F4B06E2F6243DC0084357C /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 729F8B262F7CB06B004A286B /* Products */;
-					ProjectRef = 729F8B212F7CB06B004A286B /* terrace.xcodeproj */;
-				},
-				{
-					ProductGroup = 728E9CDC2F7D6F8600744E5F /* Products */;
-					ProjectRef = 728E9CAF2F7D6F8600744E5F /* terrace.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				72F4B06C2F6243DC0084357C /* terrace */,
-				72124D8A2F9DD407004BC7DE /* tests */,
+				72023FD62F9F49BF0078C942 /* tests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		72124D892F9DD407004BC7DE /* Resources */ = {
+		72023FD52F9F49BF0078C942 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -238,7 +212,7 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		72124D872F9DD407004BC7DE /* Sources */ = {
+		72023FD32F9F49BF0078C942 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -255,16 +229,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		72124D902F9DD407004BC7DE /* Debug */ = {
+		72023FDB2F9F49BF0078C942 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/include",
 					"$(SRCROOT)/include/metal-cpp",
 					"$(SRCROOT)/terrace",
-					"$(SRCROOT)/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
@@ -275,16 +249,16 @@
 			};
 			name = Debug;
 		};
-		72124D912F9DD407004BC7DE /* Release */ = {
+		72023FDC2F9F49BF0078C942 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
 				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/include",
 					"$(SRCROOT)/include/metal-cpp",
 					"$(SRCROOT)/terrace",
-					"$(SRCROOT)/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
 				MARKETING_VERSION = 1.0;
@@ -450,11 +424,11 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		72124D8F2F9DD407004BC7DE /* Build configuration list for PBXNativeTarget "tests" */ = {
+		72023FDD2F9F49BF0078C942 /* Build configuration list for PBXNativeTarget "tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				72124D902F9DD407004BC7DE /* Debug */,
-				72124D912F9DD407004BC7DE /* Release */,
+				72023FDB2F9F49BF0078C942 /* Debug */,
+				72023FDC2F9F49BF0078C942 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
