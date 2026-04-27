@@ -36,6 +36,16 @@
 		72F4B07C2F62456D0084357C /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		72023FE22F9F4A2B0078C942 /* Exceptions for "terrace" folder in "tests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				engine/scene/Camera/Camera.cpp,
+			);
+			target = 72023FD62F9F49BF0078C942 /* tests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		72023FD82F9F49BF0078C942 /* tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -44,6 +54,9 @@
 		};
 		72F4B06F2F6243DC0084357C /* terrace */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				72023FE22F9F4A2B0078C942 /* Exceptions for "terrace" folder in "tests" target */,
+			);
 			path = terrace;
 			sourceTree = "<group>";
 		};
@@ -222,6 +235,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/include",
+					"$(SRCROOT)/include/metal-cpp",
+					"$(SRCROOT)/terrace",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = cehune.tests;
@@ -237,6 +255,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/include",
+					"$(SRCROOT)/include/metal-cpp",
+					"$(SRCROOT)/terrace",
+				);
 				MACOSX_DEPLOYMENT_TARGET = 26.3;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = cehune.tests;
