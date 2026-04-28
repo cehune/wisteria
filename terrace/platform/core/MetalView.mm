@@ -48,6 +48,28 @@
 
     app->render(ctx);
 }
+
+// mouse events
+
+- (void) mouseDragged:(NSEvent *)event {
+    app->onMouseDrag(event.deltaX, event.deltaY);
+}
+
+- (void) scrollWheel:(NSEvent *)event {
+    app->onScroll(event.scrollingDeltaY);
+}
+
+- (void) keyUp:(NSEvent *)event {
+    app->onKey(event.keyCode, false);
+}
+
+- (void) keyDown:(NSEvent *)event {
+    app->onKey(event.keyCode, true);
+}
+
+- (BOOL)acceptsFirstResponder {
+    return YES;
+}
     
 - (void)dealloc {
     std::cout << "debug";

@@ -27,6 +27,16 @@ void Application::shutdown() {
     // std::cout << "shutdown";
 }
 
+void Application::onKey(int key, bool pressed) {
+    renderer->onKey(key, pressed);
+}
+void Application::onScroll(float delta) {
+    renderer->onScroll(delta);
+}
+void Application::onMouseDrag(float dx, float dy) {
+    renderer->onMouseDrag(dx, dy);
+}
+
 /* =======PRIVATE=======*/
 void Application::init(MTL::Device* device) {
     this->device = device;
