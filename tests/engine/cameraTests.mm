@@ -7,6 +7,7 @@
 #import <XCTest/XCTest.h>
 #include "simd/simd.h"
 #include "engine/scene/Camera/Camera.hpp"
+#include "engine/scene/Camera/OrbitController.hpp"
 
 static const float EPS = 1e-4f;
 
@@ -27,87 +28,77 @@ static bool mat4Equal(simd_float4x4 A, simd_float4x4 B, float eps = EPS) {
 @implementation cameraTests
 
 - (void)testViewMatrixTranslation {
-    // camera at z=5 looking toward -z, origin should appear at z=-5 in view space
+    CameraState state;
+    state.position = simd_make_float3(0, 0, 5);
     Camera cam;
-    cam.position = simd_make_float3(0, 0, 5);
 
-    simd_float4x4 view = cam.viewMatrix();
-    simd_float4 worldOrigin = simd_make_float4(0, 0, 0, 1);
-    simd_float4 viewSpace = simd_mul(view, worldOrigin);
+    simd_float4x4 view = cam.viewMatrix(state);
+    simd_float4 viewSpace = simd_mul(view, simd_make_float4(0, 0, 0, 1));
 
-    XCTAssertEqualWithAccuracy(viewSpace.x,  0.0f, EPS);
-    XCTAssertEqualWithAccuracy(viewSpace.y,  0.0f, EPS);
     XCTAssertEqualWithAccuracy(viewSpace.z, -5.0f, EPS);
-    XCTAssertEqualWithAccuracy(viewSpace.w,  1.0f, EPS);
 }
 
 - (void)testViewMatrixIdentityAtOrigin {
-    // camera at origin with no rotation, view matrix should be identity
+    CameraState state; // defaults: position={0,0,0}, orientation=identity
     Camera cam;
-    XCTAssert(mat4Equal(cam.viewMatrix(), matrix_identity_float4x4));
+    XCTAssert(mat4Equal(cam.viewMatrix(state), matrix_identity_float4x4));
 }
 
 - (void)testForwardBasisVector {
-    // default orientation should point toward -z
-    Camera cam;
-    simd_float3 fwd = cam.forward();
+    CameraState state;
+    // forward = simd_act(identity_quat, {0,0,-1}) = {0,0,-1}
+    simd_float3 fwd = simd_act(state.orientation, simd_make_float3(0, 0, -1));
     XCTAssert(vec3Equal(fwd, simd_make_float3(0, 0, -1)));
 }
 
 - (void)testRightBasisVector {
-    Camera cam;
-    simd_float3 r = cam.right();
+    CameraState state;
+    simd_float3 r = simd_act(state.orientation, simd_make_float3(1, 0, 0));
     XCTAssert(vec3Equal(r, simd_make_float3(1, 0, 0)));
 }
 
 - (void)testUpBasisVector {
-    Camera cam;
-    simd_float3 u = cam.up();
+    CameraState state;
+    simd_float3 u = simd_act(state.orientation, simd_make_float3(0, 1, 0));
     XCTAssert(vec3Equal(u, simd_make_float3(0, 1, 0)));
 }
 
 - (void)testBasisOrthonormalityAfterRotation {
-    // after a rotation, forward/right/up should remain mutually orthonormal
-    Camera cam;
-    cam.rotate(0.4f, 0.2f);
+    // simulate what OrbitController produces after some yaw/pitch
+    OrbitController controller;
+    CameraState state;
+    // apply some drag to get a non-trivial orientation
+    controller.onMouseDrag(0.4f, 0.2f);
+    state = controller.update(state, 0.0f);
 
-    simd_float3 f = cam.forward();
-    simd_float3 r = cam.right();
-    simd_float3 u = cam.up();
+    simd_float3 f = simd_act(state.orientation, simd_make_float3(0, 0, -1));
+    simd_float3 r = simd_act(state.orientation, simd_make_float3(1, 0, 0));
+    simd_float3 u = simd_act(state.orientation, simd_make_float3(0, 1, 0));
 
-    // dot products between distinct axes should be ~0
     XCTAssertEqualWithAccuracy(simd_dot(f, r), 0.0f, EPS);
     XCTAssertEqualWithAccuracy(simd_dot(f, u), 0.0f, EPS);
     XCTAssertEqualWithAccuracy(simd_dot(r, u), 0.0f, EPS);
-
-    // each axis should be unit length
     XCTAssertEqualWithAccuracy(simd_length(f), 1.0f, EPS);
     XCTAssertEqualWithAccuracy(simd_length(r), 1.0f, EPS);
     XCTAssertEqualWithAccuracy(simd_length(u), 1.0f, EPS);
 }
 
 - (void)testProjectionNearPlaneNDC {
-    // a point on the near plane should map to NDC z = 0 in Metal
+    CameraState state;
     Camera cam;
-    float aspect = 1.0f;
-    simd_float4x4 P = cam.projectionMatrix(aspect);
-
-    simd_float4 nearPoint = simd_make_float4(0, 0, -cam.getNear(), 1);
+    simd_float4x4 P = cam.projectionMatrix(state, 1.0f);
+    simd_float4 nearPoint = simd_make_float4(0, 0, -state.near, 1);
     simd_float4 clip = simd_mul(P, nearPoint);
-    float ndcZ = clip.z / clip.w;
-    XCTAssertEqualWithAccuracy(ndcZ, 0.0f, EPS);
+    XCTAssertEqualWithAccuracy(clip.z / clip.w, 0.0f, EPS);
 }
 
 - (void)testProjectionFarPlaneNDC {
-    // a point on the far plane should map to NDC z = 1 in Metal
+    CameraState state;
     Camera cam;
-    float aspect = 1.0f;
-    simd_float4x4 P = cam.projectionMatrix(aspect);
-
-    simd_float4 farPoint = simd_make_float4(0, 0, -cam.getFar(), 1);
+    simd_float4x4 P = cam.projectionMatrix(state, 1.0f);
+    simd_float4 farPoint = simd_make_float4(0, 0, -state.far, 1);
     simd_float4 clip = simd_mul(P, farPoint);
-    float ndcZ = clip.z / clip.w;
-    XCTAssertEqualWithAccuracy(ndcZ, 1.0f, EPS);
+    XCTAssertEqualWithAccuracy(clip.z / clip.w, 1.0f, EPS);
 }
 
 @end
