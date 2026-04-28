@@ -1,5 +1,5 @@
 //
-//  RenderBackend.hpp
+//  IRenderBackend.hpp
 //  terrace
 //
 //  Created by celine on 2026-03-30.
@@ -15,9 +15,9 @@ struct FrameContext {
     uint32_t                   height;
 };
 
-class RenderBackend {
+class IRenderBackend {
 public:
-    virtual ~RenderBackend() = default;
+    virtual ~IRenderBackend() = default;
     virtual void draw(const FrameContext& ctx) = 0;
     virtual void onResize(uint32_t width, uint32_t height) = 0;
 };

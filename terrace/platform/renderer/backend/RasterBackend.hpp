@@ -5,7 +5,7 @@
 //  Created by celine on 2026-03-30.
 //
 #pragma once
-#include "RenderBackend.hpp"
+#include "IRenderBackend.hpp"
 #include <Metal/Metal.hpp>
 #include "platform/renderer/PipelineLibrary.hpp"
 #include "platform/scene/Scene.hpp"
@@ -14,7 +14,7 @@
 #include <iostream>
 #include <semaphore>
 
-class RasterBackend : public RenderBackend {
+class RasterBackend : public IRenderBackend {
 public:
     RasterBackend(MTL::Device* device, Scene* scene);
     ~RasterBackend();

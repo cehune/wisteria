@@ -6,14 +6,14 @@
 //
 
 #pragma once
-#include "RenderBackend.hpp"
+#include "IRenderBackend.hpp"
 #include <Metal/Metal.hpp>
 #include "platform/scene/Scene.hpp"
 #include <QuartzCore/QuartzCore.hpp>
 #include <iostream>
 #include "engine/scene/CameraUniforms.hpp"
 
-class PathTracerBackend : public RenderBackend {
+class PathTracerBackend : public IRenderBackend {
 public:
     PathTracerBackend(MTL::Device* device, Scene* scene);
     ~PathTracerBackend();

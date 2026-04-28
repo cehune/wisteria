@@ -8,7 +8,7 @@
 #pragma once
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
-#include "platform/renderer/backend/RenderBackend.hpp"
+#include "platform/renderer/backend/IRenderBackend.hpp"
 #include "platform/renderer/backend/PathTracerBackend.hpp"
 #include <iostream>
 #include "Renderer.hpp"
