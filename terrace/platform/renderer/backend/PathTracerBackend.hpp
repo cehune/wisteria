@@ -38,6 +38,6 @@ private:
     MTL::Texture*                   _offscreen = nullptr;
     MTL::Buffer*                    _cameraBuffer = nullptr;
     CameraUniformsPT                  _camera;
-    uint32_t _width = 0;
-    uint32_t _height = 0;
+    uint32_t _width = 800;
+    uint32_t _height = 600;
 };

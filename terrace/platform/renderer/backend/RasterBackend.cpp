@@ -35,10 +35,13 @@ RasterBackend::RasterBackend(MTL::Device* device, Scene* scene): _device(device)
     _pipelines.push_back(key);
     
     lib->release();
+    
+    // set camera controller (hardcode for now)
+    _cameraController = OrbitController();
 
     std::cout << "rasterizer setup all done \n";
     
-    _camera.position = {0,0,20};
+    //_currentCameraState.position = {0,0,20};
 }
 
 void RasterBackend::draw(const FrameContext& ctx) {
@@ -56,9 +59,12 @@ void RasterBackend::draw(const FrameContext& ctx) {
     }
     enc->setRenderPipelineState(pso);
     
+    // camera movement based on input actions
+    _currentCameraState = _cameraController.update(_currentCameraState, ctx.dt);
+    _updateCameraBuffer();
     // CAMERA with TRIPLE BUFFER
-    _frameIndex = (_frameIndex + 1) % _maxBuffers;
 
+    _frameIndex = (_frameIndex + 1) % _maxBuffers;
     _updateCameraBuffer();
 
     enc->setVertexBuffer(_cameraBuffers[_frameIndex], 0, 1); // camera
@@ -99,7 +105,7 @@ void RasterBackend::_updateCameraBuffer() {
     // camera uniforms is for the shaders, camera class is for actual object data
     // create a buffer for the shaders thats just the curretn camera unifroms
     CameraUniformsRaster cam;
-    cam.viewProjection = simd_mul(_camera.projectionMatrix(_aspect), _camera.viewMatrix());
+    cam.viewProjection = simd_mul(_camera.projectionMatrix(_currentCameraState, _aspect), _camera.viewMatrix(_currentCameraState));
     
     if (!_cameraBuffers[_frameIndex]) {
         _cameraBuffers[_frameIndex] = _device->newBuffer(&cam, sizeof(CameraUniformsRaster), MTL::ResourceStorageModeShared);
@@ -112,10 +118,10 @@ void RasterBackend::onKey(int key, bool pressed) {
     return;
 }
 void RasterBackend::onScroll(float delta) {
-    return;
+    _cameraController.onScroll(delta);
 }
 void RasterBackend::onMouseDrag(float dx, float dy) {
-    return;
+    _cameraController.onMouseDrag(dx, dy);
 }
 
 /**

@@ -73,6 +73,8 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     // Lazily build offscreen texture on first call
     if (!_offscreen) {
         _buildOffscreenTexture(ctx.width, ctx.height);
+        _width = ctx.width;
+        _height = ctx.height;
     }
     
     IGeometryPool& pool = _scene->geometryPool();

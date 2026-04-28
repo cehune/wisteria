@@ -11,6 +11,7 @@
 #include "platform/scene/Scene.hpp"
 #include "engine/scene/Camera/Camera.hpp"
 #include "engine/scene/CameraUniforms.hpp"
+#include "engine/scene/Camera/OrbitController.hpp"
 #include <iostream>
 #include <semaphore>
 
@@ -20,6 +21,8 @@ public:
     ~RasterBackend();
     void draw(const FrameContext& ctx) override;
     void onResize(uint32_t width, uint32_t height) override;
+    
+    // TODO change camera controller using a enum class later on if we make more types
     
     // Camera controls
     void onKey(int key, bool pressed) override;
@@ -35,6 +38,8 @@ private:
     std::unique_ptr<PipelineLibrary> _pipelineLibrary;
     std::vector<PipelineKey>         _pipelines;
     Camera                           _camera;
+    CameraState                      _currentCameraState;
+    OrbitController                  _cameraController;
     
     uint32_t _width  = 0;
     uint32_t _height = 0;

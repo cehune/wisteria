@@ -24,9 +24,9 @@ private:
                             const simd_float3& forward);
 
     simd_float3  _target      = {0, 0, 0};
-    float _radius      = 5.0f;
+    float _radius      = 20.0f;
     float _yaw         = 0.0f;
-    float _pitch       = 0.3f;
+    float _pitch       = -0.3f;
     float _sensitivity = 0.005f;
     float _zoomSpeed   = 0.3f;
 };
@@ -41,7 +41,6 @@ inline simd_quatf OrbitController::quatFromAxes(const simd_float3& right,
 
 inline CameraState OrbitController::update(const CameraState& current, float dt) {
     CameraState next = current;
-
     float cosPitch = cosf(_pitch);
     float sinPitch = sinf(_pitch);
                           
@@ -55,11 +54,11 @@ inline CameraState OrbitController::update(const CameraState& current, float dt)
 
     // dir is already unit vector for the position of camera to target
     simd_float3 worldUp = {0, 1, 0}; // prevent exploding when dir near up
-    if (fabs(simd_dot(dir, worldUp)) > 0.99f) {
+    if (fabs(simd_dot(dir, worldUp)) > 0.99999f) {
         worldUp = {1, 0, 0}; // avoid degeneracy
     }
 
-    simd_float3 right = simd_normalize(simd_cross(worldUp, -dir));
+    simd_float3 right = simd_normalize(simd_cross(-dir, worldUp));
     simd_float3 up    = simd_cross(right, -dir);
                           
     next.orientation  = quatFromAxes(right, up, dir);
@@ -68,7 +67,7 @@ inline CameraState OrbitController::update(const CameraState& current, float dt)
 
 inline void OrbitController::onMouseDrag(float dx, float dy) {
     _yaw  += dx * _sensitivity;
-    _pitch = std::min(std::max(_pitch + dy * _sensitivity, (float)-M_PI_2 + 0.01f), (float)M_PI_2 - 0.01f);
+    _pitch = std::min(std::max(_pitch + dy * _sensitivity, (float)-M_PI_2 + 0.1f), (float)M_PI_2 - 0.1f);
 }
 
 inline void OrbitController::onScroll(float delta) {
