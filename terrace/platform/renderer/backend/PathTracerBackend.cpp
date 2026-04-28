@@ -75,7 +75,7 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
         _buildOffscreenTexture(ctx.width, ctx.height);
     }
     
-    SceneGeometryPool& pool = _scene->geometryPool();
+    IGeometryPool& pool = _scene->geometryPool();
     MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
     MTL::ComputeCommandEncoder* enc = cmd->computeCommandEncoder();
     // pso is built from buildPipeline based on a given metal shader

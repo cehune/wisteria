@@ -7,12 +7,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		720A27242FA04A7900061064 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72C8D71F2F66298A00E6F167 /* AppKit.framework */; };
+		720A27252FA04A8000061064 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B0782F6245510084357C /* Metal.framework */; };
+		720A27262FA04A8400061064 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72C8D7162F660FD700E6F167 /* MetalKit.framework */; };
+		720A27282FA04A8800061064 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 720A27272FA04A8800061064 /* Quartz.framework */; };
+		720A27292FA04A9100061064 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B07A2F6245650084357C /* Foundation.framework */; };
 		72C8D7172F660FD700E6F167 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72C8D7162F660FD700E6F167 /* MetalKit.framework */; };
 		72C8D7202F66298A00E6F167 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72C8D71F2F66298A00E6F167 /* AppKit.framework */; };
 		72F4B0792F6245510084357C /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B0782F6245510084357C /* Metal.framework */; };
 		72F4B07B2F6245650084357C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B07A2F6245650084357C /* Foundation.framework */; };
 		72F4B07D2F62456D0084357C /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B07C2F62456D0084357C /* QuartzCore.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		720A27222FA04A6000061064 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 72F4B0652F6243DC0084357C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 72F4B06C2F6243DC0084357C;
+			remoteInfo = terrace;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		72F4B06B2F6243DC0084357C /* CopyFiles */ = {
@@ -28,6 +43,7 @@
 
 /* Begin PBXFileReference section */
 		72023FD72F9F49BF0078C942 /* tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		720A27272FA04A8800061064 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		72C8D7162F660FD700E6F167 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		72C8D71F2F66298A00E6F167 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		72F4B06D2F6243DC0084357C /* terrace */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = terrace; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -40,7 +56,11 @@
 		72023FE22F9F4A2B0078C942 /* Exceptions for "terrace" folder in "tests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				engine/geometry/MeshLoader.cpp,
 				engine/scene/Camera/Camera.cpp,
+				MetalImpl.cpp,
+				platform/scene/Scene.cpp,
+				platform/scene/SceneGeometryPool.cpp,
 			);
 			target = 72023FD62F9F49BF0078C942 /* tests */;
 		};
@@ -67,6 +87,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				720A27292FA04A9100061064 /* Foundation.framework in Frameworks */,
+				720A27282FA04A8800061064 /* Quartz.framework in Frameworks */,
+				720A27262FA04A8400061064 /* MetalKit.framework in Frameworks */,
+				720A27252FA04A8000061064 /* Metal.framework in Frameworks */,
+				720A27242FA04A7900061064 /* AppKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,6 +132,7 @@
 		72F4B0772F6245510084357C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				720A27272FA04A8800061064 /* Quartz.framework */,
 				72C8D71F2F66298A00E6F167 /* AppKit.framework */,
 				72C8D7162F660FD700E6F167 /* MetalKit.framework */,
 				72F4B07C2F62456D0084357C /* QuartzCore.framework */,
@@ -130,6 +156,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				720A27232FA04A6000061064 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				72023FD82F9F49BF0078C942 /* tests */,
@@ -227,6 +254,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		720A27232FA04A6000061064 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 72F4B06C2F6243DC0084357C /* terrace */;
+			targetProxy = 720A27222FA04A6000061064 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		72023FDB2F9F49BF0078C942 /* Debug */ = {
