@@ -6,6 +6,15 @@
 //
 #pragma once
 #include "engine/geometry/Config.hpp"
+struct CameraState {
+    Vec3       position    = {0, 0, 0};
+    simd_quatf orientation = simd_quaternion(0.f, 0.f, 0.f, 1.f);
+    float      fov         = M_PI / 3.0f;
+    float      near        = 0.1f;
+    float      far         = 1000.0f;
+};
+
+// TODO remove state info from the camera class, should just have operations for matrices
 
 class Camera { // mainly for the raster because we need to control it
 private:

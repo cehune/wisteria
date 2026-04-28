@@ -19,7 +19,7 @@
     if (self) {
         self.delegate = self;
         self.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
-        self.framebufferOnly = NO;  
+        self.framebufferOnly = NO;
         app = new Application((__bridge MTL::Device*)self.device);
     }
 

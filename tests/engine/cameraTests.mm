@@ -6,7 +6,7 @@
 //
 #import <XCTest/XCTest.h>
 #include "simd/simd.h"
-#include "engine/scene/Camera.hpp"
+#include "engine/scene/Camera/Camera.hpp"
 
 static const float EPS = 1e-4f;
 
