@@ -94,8 +94,6 @@ void RasterBackend::onResize(uint32_t width, uint32_t height) {
     _updateCameraBuffer();
 }
 
-
-
 // Private methods
 void RasterBackend::_updateCameraBuffer() {
     // camera uniforms is for the shaders, camera class is for actual object data
@@ -108,6 +106,16 @@ void RasterBackend::_updateCameraBuffer() {
     } else { // memcopy if avail
         memcpy(_cameraBuffers[_frameIndex]->contents(), &cam, sizeof(CameraUniformsRaster));
     }
+}
+
+void RasterBackend::onKey(int key, bool pressed) {
+    return;
+}
+void RasterBackend::onScroll(float delta) {
+    return;
+}
+void RasterBackend::onMouseDrag(float dx, float dy) {
+    return;
 }
 
 /**

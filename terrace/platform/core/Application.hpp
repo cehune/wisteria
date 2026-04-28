@@ -23,6 +23,11 @@ public:
     void onResize(uint32_t width, uint32_t height);
     void shutdown();
     void run();
+    
+    // called via metalview
+    void onKey(int key, bool pressed);
+    void onScroll(float delta);
+    void onMouseDrag(float dx, float dy);
         
 private:
     void init(MTL::Device* device);

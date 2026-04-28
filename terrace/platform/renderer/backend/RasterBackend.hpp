@@ -20,6 +20,11 @@ public:
     ~RasterBackend();
     void draw(const FrameContext& ctx) override;
     void onResize(uint32_t width, uint32_t height) override;
+    
+    // Camera controls
+    void onKey(int key, bool pressed) override;
+    void onScroll(float delta) override;
+    void onMouseDrag(float dx, float dy) override;
 
 private:
     void _updateCameraBuffer();

@@ -21,6 +21,11 @@ public:
     void draw(const FrameContext& ctx) override;
     void onResize(uint32_t width, uint32_t height) override;
     
+    // Don't really do these for path tracing for now.
+    void onKey(int key, bool pressed) override { return; };
+    void onScroll(float delta) override { return; };
+    void onMouseDrag(float dx, float dy) override { return; };
+    
 private:
     void _buildPipeline();
     void _buildOffscreenTexture(uint32_t w, uint32_t h);
