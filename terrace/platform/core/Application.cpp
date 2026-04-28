@@ -30,7 +30,8 @@ void Application::shutdown() {
 /* =======PRIVATE=======*/
 void Application::init(MTL::Device* device) {
     this->device = device;
-    scene    = std::make_unique<Scene>();
+    pool     = std::make_unique<SceneGeometryPool>();
+    scene    = std::make_unique<Scene>(*pool);
         
     // Hardcode a triangle for now
     Mesh mesh{};

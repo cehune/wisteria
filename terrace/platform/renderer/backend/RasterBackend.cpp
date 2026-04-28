@@ -67,7 +67,7 @@ void RasterBackend::draw(const FrameContext& ctx) {
     });
     
     // retrieve pool
-    SceneGeometryPool& pool = _scene->geometryPool();
+    IGeometryPool& pool = _scene->geometryPool();
     
     // make a draw per mesh
     for (Mesh& mesh: _scene->meshes()) {

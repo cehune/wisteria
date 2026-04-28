@@ -30,5 +30,6 @@ private:
     // GPU entry point
     MTL::Device* device = nullptr;
     std::unique_ptr<Scene>    scene;
+    std::unique_ptr<IGeometryPool> pool;
     std::unique_ptr<Renderer> renderer;
 };

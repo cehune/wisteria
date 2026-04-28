@@ -9,21 +9,22 @@
 #include "engine/scene/Mesh.hpp"
 #include "engine/scene/Core.hpp" // 6429
 #include "engine/geometry/MeshLoader.hpp"
+#include "IGeometryPool.hpp"
 
-class SceneGeometryPool {
+class SceneGeometryPool: public IGeometryPool {
 public:
     SceneGeometryPool();
     void uploadMesh(Mesh& mesh,
                     const std::vector<Vertex>& verts,
                     const std::vector<uint32_t>& indices,
-                    MTL::Device* device);
+                    MTL::Device* device) override;
     
-    void uploadMeshFile(Mesh& mesh, const std::string& meshPath, MTL::Device* device);
+    void uploadMeshFile(Mesh& mesh, const std::string& meshPath, MTL::Device* device) override;
     std::pair<Vec4, Vec4> calculateBounds(const std::vector<Vertex>& verts);
-    MTL::Buffer* vertexBufferFor(const Mesh& mesh);
-    MTL::Buffer* indexBufferFor(const Mesh& mesh);
-    MTL::Buffer* mergeVertexBuffer(MTL::Device* device);
-    MTL::Buffer* mergeIndexBuffer(MTL::Device* device);
+    MTL::Buffer* vertexBufferFor(const Mesh& mesh) override;
+    MTL::Buffer* indexBufferFor(const Mesh& mesh) override;
+    MTL::Buffer* mergeVertexBuffer(MTL::Device* device) override;
+    MTL::Buffer* mergeIndexBuffer(MTL::Device* device) override;
 
 private:
     // eventually change these to mega buffer for optimization
