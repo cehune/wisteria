@@ -12,6 +12,7 @@
 #include <QuartzCore/QuartzCore.hpp>
 #include <iostream>
 #include "engine/scene/CameraUniforms.hpp"
+#include "engine/scene/Camera/Camera.hpp"
 
 class PathTracerBackend : public IRenderBackend {
 public:
@@ -25,6 +26,8 @@ public:
     void onKey(int key, bool pressed) override { return; };
     void onScroll(float delta) override { return; };
     void onMouseDrag(float dx, float dy) override { return; };
+
+    void setCameraState(const CameraState& state);
     
 private:
     void _buildPipeline();
@@ -37,7 +40,9 @@ private:
     MTL::ComputePipelineState*      _pso       = nullptr;
     MTL::Texture*                   _offscreen = nullptr;
     MTL::Buffer*                    _cameraBuffer = nullptr;
-    CameraUniformsPT                  _camera;
+    CameraUniformsPT                _cameraUniforms;
+    Camera                          _camera;
+    CameraState                     _currentCameraState;
     uint32_t _width = 800;
     uint32_t _height = 600;
 };

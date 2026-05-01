@@ -16,6 +16,9 @@ struct CameraState {
 
 class Camera { // mainly for the raster because we need to control it
 public:
+    Vec3 right(CameraState& state) const { return simd_act(state.orientation, Vec3{1, 0, 0});};
+    Vec3 up(CameraState& state) const { return simd_act(state.orientation, Vec3{0, 1, 0});};
+    Vec3 forward(CameraState& state) const { return simd_act(state.orientation, Vec3{0, 0, -1});};
     simd_float4x4 viewMatrix(CameraState& state) const;
     simd_float4x4 projectionMatrix(CameraState& state, float aspect) const;
 };
