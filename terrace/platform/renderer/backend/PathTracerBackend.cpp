@@ -47,7 +47,7 @@ void PathTracerBackend::_buildOffscreenTexture(uint32_t w, uint32_t h) {
     MTL::TextureDescriptor* td = MTL::TextureDescriptor::texture2DDescriptor(
         MTL::PixelFormatRGBA8Unorm, w, h, false);
     td->setUsage(MTL::TextureUsageShaderWrite | MTL::TextureUsageShaderRead);
-    td->setStorageMode(MTL::StorageModePrivate);  // GPU-only, blit to drawable after
+    td->setStorageMode(MTL::StorageModeShared);  // GPU-only, blit to drawable after
 
     _offscreen = _device->newTexture(td);
 }
