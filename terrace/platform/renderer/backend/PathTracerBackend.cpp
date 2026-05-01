@@ -8,6 +8,10 @@
 #include "PathTracerBackend.hpp"
 
 PathTracerBackend::PathTracerBackend(MTL::Device* device, Scene* scene): _device(device), _scene(scene) {
+    // TEMP
+    _currentCameraState = CameraState();
+    _currentCameraState.position = {0.0f,2.0f,15.0f};
+    
     _commandQueue = device->newCommandQueue();
     _buildPipeline();
     _updateCameraBuffer();
@@ -49,13 +53,21 @@ void PathTracerBackend::_buildOffscreenTexture(uint32_t w, uint32_t h) {
 }
 
 void PathTracerBackend::_updateCameraBuffer() {
+    // set the uniforms based on the current camera state
+    // get right, up, and fwd vectors via quat
+    _cameraUniforms.right = _camera.right(_currentCameraState);
+    _cameraUniforms.up = _camera.up(_currentCameraState);
+    _cameraUniforms.forward = _camera.forward(_currentCameraState);
+    _cameraUniforms.origin = _currentCameraState.position;
+    _cameraUniforms.fov = _currentCameraState.fov;
+
     if (!_cameraBuffer) {
         // TODO: check if resource mode shared is sufficient for now?
         _cameraBuffer = _device->newBuffer(
-            &_camera, sizeof(CameraUniformsPT), MTL::ResourceStorageModeShared
+            &_cameraUniforms, sizeof(CameraUniformsPT), MTL::ResourceStorageModeShared
         );
     } else {
-        memcpy(_cameraBuffer->contents(), &_camera, sizeof(CameraUniformsPT));
+        memcpy(_cameraBuffer->contents(), &_cameraUniforms, sizeof(CameraUniformsPT));
     }
 }
 
@@ -118,4 +130,12 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     // schedules to appear in the window
     cmd->presentDrawable(ctx.drawable);
     cmd->commit();
+}
+
+void PathTracerBackend::setCameraState(const CameraState& state) {
+    _currentCameraState.far = state.far;
+    _currentCameraState.near = state.near;
+    _currentCameraState.fov = state.fov;
+    _currentCameraState.position = state.position;    
+    _currentCameraState.orientation = state.orientation;
 }

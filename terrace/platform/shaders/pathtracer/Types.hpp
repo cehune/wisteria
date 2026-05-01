@@ -32,7 +32,7 @@ struct HitResult {
     float2 bary;
 };
 
-struct CameraUniforms {
+struct CameraUniformsPT {
     float3 origin;
     float3 forward;
     float3 up;

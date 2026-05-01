@@ -48,7 +48,7 @@ kernel void raytrace_kernel(
     const device VertexIn*           vertices [[buffer(0)]],
     const device uint*               indices  [[buffer(1)]],
     constant uint&                   numTri   [[buffer(2)]],
-    constant CameraUniforms&         cam      [[buffer(3)]],
+    constant CameraUniformsPT&       cam      [[buffer(3)]],
     uint2                            gid      [[thread_position_in_grid]])
 {
     uint W = outTex.get_width();
@@ -59,11 +59,16 @@ kernel void raytrace_kernel(
     float2 ndc = uv * 2.0 - 1.0;
     
     Ray ray;
-    ray.origin = float3(0, 0, 5);
+    ray.origin = cam.origin;
 
     float aspect = float(W) / float(H);
     float2 ndc_corrected = float2(ndc.x * aspect, -ndc.y);
-    ray.direction = normalize(float3(ndc_corrected.x, ndc_corrected.y, -1.0));
+    float halfH = tan(cam.fov * 0.5);
+    ray.direction = normalize(
+        cam.forward
+        + cam.right * (ndc.x * aspect * halfH)
+        + cam.up    * (-ndc.y * halfH)
+    );
     
     HitResult closest;
     closest.hit = false;
