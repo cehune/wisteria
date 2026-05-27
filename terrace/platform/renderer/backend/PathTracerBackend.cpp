@@ -120,22 +120,22 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     MTL::ComputeCommandEncoder* enc = cmd->computeCommandEncoder();
     // pso is built from buildPipeline based on a given metal shader
     enc->setComputePipelineState(_pso);
-    
+
+    // total triangles for set of all meshes
     uint32_t totalTri = 0;
     for (Mesh& m : _scene->meshes()) totalTri += m.numTriangles;
 
-    MTL::Buffer* vb = pool.mergeVertexBuffer(_device);
-    MTL::Buffer* ib = pool.mergeIndexBuffer(_device);
-    MTL::Buffer* numTriBuf = _device->newBuffer(&totalTri, sizeof(uint32_t), MTL::ResourceStorageModeShared);
+    MTL::Buffer* vb = pool.vertexBuffer();
+    MTL::Buffer* ib = pool.indexBuffer();
 
     enc->setTexture(_offscreen, 0);
     enc->setTexture(_accumulation, 1);
-    enc->setBuffer(vb,        0, 0);
-    enc->setBuffer(ib,        0, 1);
-    enc->setBuffer(numTriBuf, 0, 2);
+    enc->setBuffer(vb,            0, 0);
+    enc->setBuffer(ib,            0, 1);
+    enc->setBytes(&totalTri, sizeof(uint32_t), 2);
     enc->setBuffer(_cameraBuffer, 0, 3);
-    enc->setBytes(&_sampleCount, sizeof(uint32_t), 4); // not full buffer
-    
+    enc->setBytes(&_sampleCount, sizeof(uint32_t), 4);
+
     // run the kernel function per pixel per thread, (makes as many threads as pixels)
     NS::UInteger tw = _pso->threadExecutionWidth();
     NS::UInteger th = _pso->maxTotalThreadsPerThreadgroup() / tw;
@@ -145,10 +145,6 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     enc->dispatchThreads(threadsPerGrid, threadsPerGroup);
     enc->endEncoding();
     ++_sampleCount;
-    
-    vb->release();
-    ib->release();
-    numTriBuf->release();
     
     // kinda like dma, need to copy from off screen texture to actual texture
     CA::MetalDrawable* metalDrawable = static_cast<CA::MetalDrawable*>(ctx.drawable);

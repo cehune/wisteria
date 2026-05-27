@@ -46,7 +46,12 @@ void Scene::addMeshInstance(std::string& mesh_file_path, MTL::Device* device)
     instance.boundsMax = mesh.localBoundsMax;
     // identity transform for now
     instance.transform = matrix_identity_float4x4;
-    
+
+    // mirror megabuffer offsets onto the instance so it's self-sufficient
+    instance.vertexOffset = mesh.vertexOffset;
+    instance.indexOffset  = mesh.indexOffset;
+    instance.indexCount   = mesh.indexCount;
+
     mesh.meshInstanceIndexes.push_back(instance.index);
     _meshInstances.push_back(instance);
 }

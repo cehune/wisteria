@@ -10,8 +10,8 @@
 class MockGeometryPool : public IGeometryPool {
 public:
     void uploadMesh(Mesh& mesh,
-                           const std::vector<Vertex>& verts,
-                           const std::vector<uint32_t>& indices,
+                    const std::vector<Vertex>& verts,
+                    const std::vector<uint32_t>& indices,
                     MTL::Device* device) override {
         return;
     }
@@ -19,19 +19,17 @@ public:
         // just populate bounds with dummy data, no Metal
         mesh.localBoundsMin = {-1, -1, -1, 0};
         mesh.localBoundsMax = { 1,  1,  1, 0};
+        mesh.vertexOffset   = 0;
+        mesh.indexOffset    = 0;
+        mesh.vertexCount    = 3;
+        mesh.indexCount     = 3;
         mesh.numTriangles   = 1;
         _uploadCount++;
     }
 
-    MTL::Buffer* vertexBufferFor(const Mesh& mesh) override { return nullptr; }
-    MTL::Buffer* indexBufferFor(const Mesh& mesh)  override { return nullptr; }
-    
-    MTL::Buffer* mergeVertexBuffer(MTL::Device* device) override {
-        return nullptr;
-    }
-    MTL::Buffer* mergeIndexBuffer(MTL::Device* device) override{
-        return nullptr;
-    }
+    MTL::Buffer* vertexBuffer() override { return nullptr; }
+    MTL::Buffer* indexBuffer()  override { return nullptr; }
+    void finalize() override {}
 
     int _uploadCount = 0;
 };
