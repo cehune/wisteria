@@ -72,19 +72,20 @@ void RasterBackend::draw(const FrameContext& ctx) {
         dispatch_semaphore_signal(_camBufferSemaphore);
     });
     
-    // retrieve pool
+    // retrieve pool — single megabuffer for all unique meshes
     IGeometryPool& pool = _scene->geometryPool();
-    
-    // make a draw per mesh
+    MTL::Buffer* megaVB = pool.vertexBuffer();
+    MTL::Buffer* megaIB = pool.indexBuffer();
+
+    enc->setVertexBuffer(megaVB, 0, 0);
+
     for (Mesh& mesh: _scene->meshes()) {
-        // offsets are 0 for now because one buffer per mesh for now
-        enc->setVertexBuffer(pool.vertexBufferFor(mesh), 0, 0);
         enc->drawIndexedPrimitives(
-           MTL::PrimitiveTypeTriangle,
-           mesh.numTriangles * 3,
-           MTL::IndexTypeUInt32,
-           pool.indexBufferFor(mesh),
-           0); // when we do mega buffer it's like this mesh.indexOffset * sizeof(uint32_t))
+            MTL::PrimitiveTypeTriangle,
+            static_cast<NS::UInteger>(mesh.indexCount),
+            MTL::IndexTypeUInt32,
+            megaIB,
+            static_cast<NS::UInteger>(mesh.indexOffset) * sizeof(uint32_t));
     }
         
     enc->endEncoding();

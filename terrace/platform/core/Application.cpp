@@ -59,7 +59,8 @@ void Application::init(MTL::Device* device) {
     std::string cow = "/Users/celine/Documents/projects/terrace/terrace/samples/cow.obj";
     scene->addMeshInstance(cow, device);
 
-    //scene->addMeshDirect(mesh, verts, indices, device);
+    // create GPU buffers
+    pool->finalize();
 
     std::cout << "uploaded all \n";
     
