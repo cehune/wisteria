@@ -33,6 +33,7 @@ private:
     void _buildPipeline();
     void _buildOffscreenTexture(uint32_t w, uint32_t h);
     void _updateCameraBuffer();
+    void _buildAccumulationTexture(uint32_t w, uint32_t h);
 
     MTL::Device*                    _device;
     Scene*                          _scene;
@@ -43,6 +44,12 @@ private:
     CameraUniformsPT                _cameraUniforms;
     Camera                          _camera;
     CameraState                     _currentCameraState;
+
+    // accumulation buffer
+    MTL::Texture*                   _accumulation;
+    bool                            _dirty;
+    uint32_t                        _sampleCount;
+
     uint32_t _width = 800;
     uint32_t _height = 600;
 };
