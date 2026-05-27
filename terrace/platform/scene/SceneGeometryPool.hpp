@@ -21,17 +21,15 @@ public:
     
     void uploadMeshFile(Mesh& mesh, const std::string& meshPath, MTL::Device* device) override;
     std::pair<Vec4, Vec4> calculateBounds(const std::vector<Vertex>& verts);
-    MTL::Buffer* vertexBuffer() override;
-    MTL::Buffer* indexBuffer() override;
+    MTL::Buffer* vertexBufferFor(const Mesh& mesh) override;
+    MTL::Buffer* indexBufferFor(const Mesh& mesh) override;
     MTL::Buffer* mergeVertexBuffer(MTL::Device* device) override;
     MTL::Buffer* mergeIndexBuffer(MTL::Device* device) override;
 
 private:
-    MTL::Buffer*              _vertexBuffer = nullptr;
-    MTL::Buffer*              _indexBuffer = nullptr;
-    std::vector<Vertex>       _vertices;
-    std::vector<uint32_t>     _indices;
-    bool                      _dirty = true;
-    uint32_t                  _meshCount = 0;
+    // eventually change these to mega buffer for optimization
+    std::vector<MTL::Buffer*> _vertexBuffers;
+    std::vector<MTL::Buffer*> _indexBuffers;
+    uint32_t _meshCount = 0;
     MeshLoader                _meshLoader;
 };

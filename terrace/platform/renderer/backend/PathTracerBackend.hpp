@@ -46,9 +46,9 @@ private:
     CameraState                     _currentCameraState;
 
     // accumulation buffer
-    MTL::Texture*                   _accumulation;
-    bool                            _dirty;
-    uint32_t                        _sampleCount;
+    MTL::Texture*                   _accumulation = nullptr;
+    bool                            _dirty        = true;
+    uint32_t                        _sampleCount  = 0;
 
     uint32_t _width = 800;
     uint32_t _height = 600;

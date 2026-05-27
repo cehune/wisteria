@@ -21,9 +21,11 @@ PathTracerBackend::PathTracerBackend(MTL::Device* device, Scene* scene): _device
 }
 
 PathTracerBackend::~PathTracerBackend() {
-    if (_pso)       _pso->release();
-    if (_offscreen) _offscreen->release();
-    _commandQueue->release();
+    if (_pso)          _pso->release();
+    if (_offscreen)    _offscreen->release();
+    if (_accumulation) _accumulation->release();
+    if (_cameraBuffer) _cameraBuffer->release();
+    if (_commandQueue) _commandQueue->release();
 }
 
 void PathTracerBackend::_buildPipeline() {
@@ -90,11 +92,11 @@ void PathTracerBackend::onResize(uint32_t w, uint32_t h) {
     _width = w;
     _height = h;
     _updateCameraBuffer();
-    
-    // accumulation work
-    _buildAccumulationTexture(w, h);
+
+    // Mark accumulation dirty — the draw loop will rebuild the texture and
+    // reset _sampleCount on the next frame. Avoids rebuilding twice when
+    // onResize is followed immediately by draw.
     _dirty = true;
-    _sampleCount = 0;
 }
 
 // ── Per-frame trace ───────────────────────────────────────────────────────────
@@ -163,6 +165,11 @@ void PathTracerBackend::setCameraState(const CameraState& state) {
     _currentCameraState.far = state.far;
     _currentCameraState.near = state.near;
     _currentCameraState.fov = state.fov;
-    _currentCameraState.position = state.position;    
+    _currentCameraState.position = state.position;
     _currentCameraState.orientation = state.orientation;
+
+    // Push the new uniforms to the GPU and invalidate the accumulator —
+    // otherwise old samples from the previous view ghost into the new one.
+    _updateCameraBuffer();
+    _dirty = true;
 }
