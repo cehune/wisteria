@@ -15,13 +15,17 @@ PathTracerBackend::PathTracerBackend(MTL::Device* device, Scene* scene): _device
     _commandQueue = device->newCommandQueue();
     _buildPipeline();
     _updateCameraBuffer();
+    _dirty = true; // accumulation buffer
+    
     std::cout << "Pathtracer backend setup done";
 }
 
 PathTracerBackend::~PathTracerBackend() {
-    if (_pso)       _pso->release();
-    if (_offscreen) _offscreen->release();
-    _commandQueue->release();
+    if (_pso)          _pso->release();
+    if (_offscreen)    _offscreen->release();
+    if (_accumulation) _accumulation->release();
+    if (_cameraBuffer) _cameraBuffer->release();
+    if (_commandQueue) _commandQueue->release();
 }
 
 void PathTracerBackend::_buildPipeline() {
@@ -46,10 +50,21 @@ void PathTracerBackend::_buildOffscreenTexture(uint32_t w, uint32_t h) {
 
     MTL::TextureDescriptor* td = MTL::TextureDescriptor::texture2DDescriptor(
         MTL::PixelFormatRGBA8Unorm, w, h, false);
-    td->setUsage(MTL::TextureUsageShaderWrite | MTL::TextureUsageShaderRead);
+    td->setUsage(MTL::TextureUsageShaderWrite);
     td->setStorageMode(MTL::StorageModePrivate);  // GPU-only, blit to drawable after
 
     _offscreen = _device->newTexture(td);
+}
+
+void PathTracerBackend::_buildAccumulationTexture(uint32_t w, uint32_t h) {
+    if (_accumulation) _accumulation->release();
+    
+    MTL::TextureDescriptor* td = MTL::TextureDescriptor::texture2DDescriptor(
+       MTL::PixelFormatRGBA32Float, w, h, false);
+    td->setUsage(MTL::TextureUsageShaderWrite | MTL::TextureUsageShaderRead);
+    td->setStorageMode(MTL::StorageModePrivate); // only for the GPU, use private
+    
+    _accumulation = _device->newTexture(td);
 }
 
 void PathTracerBackend::_updateCameraBuffer() {
@@ -77,6 +92,11 @@ void PathTracerBackend::onResize(uint32_t w, uint32_t h) {
     _width = w;
     _height = h;
     _updateCameraBuffer();
+
+    // Mark accumulation dirty — the draw loop will rebuild the texture and
+    // reset _sampleCount on the next frame. Avoids rebuilding twice when
+    // onResize is followed immediately by draw.
+    _dirty = true;
 }
 
 // ── Per-frame trace ───────────────────────────────────────────────────────────
@@ -87,6 +107,12 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
         _buildOffscreenTexture(ctx.width, ctx.height);
         _width = ctx.width;
         _height = ctx.height;
+    }
+    // remake the accumulation buffer if it was dirty
+    if (_dirty) {
+        _buildAccumulationTexture(ctx.width, ctx.height);
+        _dirty = false;
+        _sampleCount = 0;
     }
     
     IGeometryPool& pool = _scene->geometryPool();
@@ -103,10 +129,12 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     MTL::Buffer* numTriBuf = _device->newBuffer(&totalTri, sizeof(uint32_t), MTL::ResourceStorageModeShared);
 
     enc->setTexture(_offscreen, 0);
+    enc->setTexture(_accumulation, 1);
     enc->setBuffer(vb,        0, 0);
     enc->setBuffer(ib,        0, 1);
     enc->setBuffer(numTriBuf, 0, 2);
     enc->setBuffer(_cameraBuffer, 0, 3);
+    enc->setBytes(&_sampleCount, sizeof(uint32_t), 4); // not full buffer
     
     // run the kernel function per pixel per thread, (makes as many threads as pixels)
     NS::UInteger tw = _pso->threadExecutionWidth();
@@ -116,6 +144,7 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
 
     enc->dispatchThreads(threadsPerGrid, threadsPerGroup);
     enc->endEncoding();
+    ++_sampleCount;
     
     vb->release();
     ib->release();
@@ -136,6 +165,11 @@ void PathTracerBackend::setCameraState(const CameraState& state) {
     _currentCameraState.far = state.far;
     _currentCameraState.near = state.near;
     _currentCameraState.fov = state.fov;
-    _currentCameraState.position = state.position;    
+    _currentCameraState.position = state.position;
     _currentCameraState.orientation = state.orientation;
+
+    // Push the new uniforms to the GPU and invalidate the accumulator —
+    // otherwise old samples from the previous view ghost into the new one.
+    _updateCameraBuffer();
+    _dirty = true;
 }
