@@ -45,10 +45,12 @@ static HitResult moller_trumbore(float3 a, float3 b, float3 c, Ray ray, float ep
 
 kernel void raytrace_kernel(
     texture2d<float, access::write>  outTex   [[texture(0)]],
+    texture2d<float, access::read_write> accumTex [[texture(1)]],
     const device VertexIn*           vertices [[buffer(0)]],
     const device uint*               indices  [[buffer(1)]],
     constant uint&                   numTri   [[buffer(2)]],
     constant CameraUniformsPT&       cam      [[buffer(3)]],
+    constant uint& sampleCount                    [[buffer(4)]],
     uint2                            gid      [[thread_position_in_grid]])
 {
     uint W = outTex.get_width();
@@ -62,7 +64,6 @@ kernel void raytrace_kernel(
     ray.origin = cam.origin;
 
     float aspect = float(W) / float(H);
-    float2 ndc_corrected = float2(ndc.x * aspect, -ndc.y);
     float halfH = tan(cam.fov * 0.5);
     ray.direction = normalize(
         cam.forward
@@ -96,7 +97,11 @@ kernel void raytrace_kernel(
 //                         + hit.bary.y * vC.color.xyz, 1.0);
         }
     }
+    float4 prev = accumTex.read(gid);
+    float4 accum = (prev * float(sampleCount) + color) / float(sampleCount + 1);
+    accumTex.write(accum, gid);
 
-    outTex.write(color, gid);
+    // write display output
+    outTex.write(accum, gid);
 }
 

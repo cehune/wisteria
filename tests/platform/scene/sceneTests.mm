@@ -19,8 +19,9 @@
     Scene scene(pool);
 
     std::string path = "test_mesh.obj";
-    scene.addMeshInstance(path, nullptr); // device is nullptr, mock ignores it
-    scene.addMeshInstance(path, nullptr);
+    simd::float4x4 I = matrix_identity_float4x4;
+    scene.addMeshInstance(path, I, nullptr); // device is nullptr, mock ignores it
+    scene.addMeshInstance(path, I, nullptr);
 
     XCTAssertEqual(scene.numMeshes(), 1);
     XCTAssertEqual(scene.numMeshInstances(), 2);
@@ -38,10 +39,11 @@
 
     std::string meshA = "a.obj";
     std::string meshB = "b.obj";
+    simd::float4x4 I = matrix_identity_float4x4;
 
-    scene.addMeshInstance(meshA, nullptr);
-    scene.addMeshInstance(meshB, nullptr);
-    scene.addMeshInstance(meshA, nullptr);
+    scene.addMeshInstance(meshA, I, nullptr);
+    scene.addMeshInstance(meshB, I, nullptr);
+    scene.addMeshInstance(meshA, I, nullptr);
 
     XCTAssertEqual(scene.numMeshes(), 2);
     XCTAssertEqual(scene.numMeshInstances(), 3);

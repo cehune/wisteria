@@ -23,7 +23,10 @@ public:
                        const std::vector<uint32_t>& indices,
                        MTL::Device* device);
     
-    void addMeshInstance(std::string& meshfilepath, MTL::Device* device);
+    // First call adds mesh and mesh instance. Subsequent calls with same filepath only do instance
+    void addMeshInstance(const std::string& meshfilepath,
+                         const simd::float4x4& transform,
+                         MTL::Device* device);
 
     // call before render for setup
     // void finalize(MTL::Device* device);
@@ -31,6 +34,7 @@ public:
     IGeometryPool& geometryPool() { return _pool; }
     MTL::Buffer* materialBuffer()     { return _materialBuffer; }
     std::vector<Mesh>& meshes() { return _meshes; }
+    std::vector<MeshInstance>& instances() { return _meshInstances; }
     
     // Getters mainly for testing
     const Mesh& mesh(size_t i) const { return _meshes[i]; }

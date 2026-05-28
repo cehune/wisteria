@@ -19,11 +19,13 @@ void Scene::addMeshDirect(Mesh& mesh,
     _meshes.push_back(mesh);
 }
 
-void Scene::addMeshInstance(std::string& mesh_file_path, MTL::Device* device)
+void Scene::addMeshInstance(const std::string& mesh_file_path,
+                            const simd::float4x4& transform,
+                            MTL::Device* device)
 {
     uint16_t meshIndex;
     auto iter = _fileToMeshIndex.find(mesh_file_path);
-    
+
     // generate new mesh and new instance
     if (iter == _fileToMeshIndex.end()) {
         Mesh mesh;
@@ -32,11 +34,11 @@ void Scene::addMeshInstance(std::string& mesh_file_path, MTL::Device* device)
         mesh.index = meshIndex;
         _meshes.push_back(mesh);
         _fileToMeshIndex[mesh_file_path] = meshIndex;
-        
+
     } else { // otherwise the mesh has already been uploaded, don't need to re-upload!
         meshIndex = iter->second;
     }
-    
+
     // then we create a mesh index
     Mesh& mesh = _meshes[meshIndex];
     MeshInstance instance;
@@ -44,8 +46,7 @@ void Scene::addMeshInstance(std::string& mesh_file_path, MTL::Device* device)
     instance.meshIndex = mesh.index;
     instance.boundsMin = mesh.localBoundsMin;
     instance.boundsMax = mesh.localBoundsMax;
-    // identity transform for now
-    instance.transform = matrix_identity_float4x4;
+    instance.transform = transform;
 
     // mirror megabuffer offsets onto the instance so it's self-sufficient
     instance.vertexOffset = mesh.vertexOffset;
