@@ -79,13 +79,15 @@ void RasterBackend::draw(const FrameContext& ctx) {
 
     enc->setVertexBuffer(megaVB, 0, 0);
 
-    for (Mesh& mesh: _scene->meshes()) {
+    for (const MeshInstance& inst : _scene->instances()) {
+        // transforms (model matrix) fed into buffer per instance (one transform for whole buffer)
+        enc->setVertexBytes(&inst.transform, sizeof(inst.transform), 2);
         enc->drawIndexedPrimitives(
             MTL::PrimitiveTypeTriangle,
-            static_cast<NS::UInteger>(mesh.indexCount),
+            static_cast<NS::UInteger>(inst.indexCount),
             MTL::IndexTypeUInt32,
             megaIB,
-            static_cast<NS::UInteger>(mesh.indexOffset) * sizeof(uint32_t));
+            static_cast<NS::UInteger>(inst.indexOffset) * sizeof(uint32_t));
     }
         
     enc->endEncoding();

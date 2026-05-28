@@ -57,13 +57,25 @@ void Application::init(MTL::Device* device) {
     std::vector<uint32_t> indices = {0, 1, 2};
 
     std::string cow = "/Users/celine/Documents/projects/terrace/terrace/samples/cow.obj";
-    scene->addMeshInstance(cow, device);
+
+    // Three cow
+    // TODO: RasterBackend reads instances and will show 3 cows.
+    //       PathTracerBackend doesn't read instances yet (waiting on TLAS)
+    //       so it will show 1 cow at identity, regardless of these transforms.
+    auto translation = [](float x, float y, float z) {
+        simd::float4x4 m = matrix_identity_float4x4;
+        m.columns[3] = {x, y, z, 1.0f};
+        return m;
+    };
+    scene->addMeshInstance(cow, translation(-3.0f, 0.0f, 0.0f), device);
+    scene->addMeshInstance(cow, translation( 0.0f, 0.0f, 0.0f), device);
+    scene->addMeshInstance(cow, translation( 3.0f, 0.0f, 0.0f), device);
 
     // create GPU buffers
     pool->finalize();
 
     std::cout << "uploaded all \n";
-    
+
     auto backend = std::make_unique<PathTracerBackend>(device, scene.get());
     renderer = std::make_unique<Renderer>(std::move(backend));
 }

@@ -123,6 +123,7 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
 
     // total triangles for set of all meshes
     uint32_t totalTri = 0;
+    // TODO: use mesh instances once we switch to proper tracing
     for (Mesh& m : _scene->meshes()) totalTri += m.numTriangles;
 
     MTL::Buffer* vb = pool.vertexBuffer();
