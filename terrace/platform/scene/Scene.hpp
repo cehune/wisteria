@@ -23,8 +23,9 @@ public:
                        const std::vector<uint32_t>& indices,
                        MTL::Device* device);
     
-    // First call adds mesh and mesh instance. Subsequent calls with same filepath only do instance
-    void addMeshInstance(const std::string& meshfilepath,
+    // First call adds mesh and mesh instance. Subsequent calls with same filepath only do instance.
+    // Returns false (and adds nothing) if the mesh fails to load.
+    bool addMeshInstance(const std::string& meshfilepath,
                          const simd::float4x4& transform,
                          MTL::Device* device);
 

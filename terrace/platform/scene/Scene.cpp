@@ -6,6 +6,8 @@
 //
 
 #include "Scene.hpp"
+#include <exception>
+#include <iostream>
 
 Scene::Scene(IGeometryPool& pool): _pool(pool) {}
 
@@ -19,7 +21,7 @@ void Scene::addMeshDirect(Mesh& mesh,
     _meshes.push_back(mesh);
 }
 
-void Scene::addMeshInstance(const std::string& mesh_file_path,
+bool Scene::addMeshInstance(const std::string& mesh_file_path,
                             const simd::float4x4& transform,
                             MTL::Device* device)
 {
@@ -29,7 +31,14 @@ void Scene::addMeshInstance(const std::string& mesh_file_path,
     // generate new mesh and new instance
     if (iter == _fileToMeshIndex.end()) {
         Mesh mesh;
-        _pool.uploadMeshFile(mesh, mesh_file_path, device);
+        // The loader throws on a bad path / parse error. Skip instances that fail.
+        try {
+            _pool.uploadMeshFile(mesh, mesh_file_path, device);
+        } catch (const std::exception& e) {
+            std::cerr << "[Scene] failed to load mesh '" << mesh_file_path
+                      << "': " << e.what() << " - skipping instance\n";
+            return false;
+        }
         meshIndex = _meshes.size();
         mesh.index = meshIndex;
         _meshes.push_back(mesh);
@@ -44,6 +53,8 @@ void Scene::addMeshInstance(const std::string& mesh_file_path,
     MeshInstance instance;
     instance.index = _meshInstances.size();
     instance.meshIndex = mesh.index;
+    instance.materialID = 0;   // TODO: real material assignment
+    instance.pipelineID = 0;   // TODO: per-instance pipeline selection
     instance.boundsMin = mesh.localBoundsMin;
     instance.boundsMax = mesh.localBoundsMax;
     instance.transform = transform;
@@ -55,4 +66,5 @@ void Scene::addMeshInstance(const std::string& mesh_file_path,
 
     mesh.meshInstanceIndexes.push_back(instance.index);
     _meshInstances.push_back(instance);
+    return true;
 }
