@@ -21,6 +21,7 @@ MTL::RenderPipelineState* PipelineLibrary::getOrCreate(const PipelineKey& key) {
     desc->setVertexFunction(vertFn);
     desc->setFragmentFunction(fragFn);
     desc->colorAttachments()->object(0)->setPixelFormat(toMTL(key.pixelFormat));
+    desc->setDepthAttachmentPixelFormat(toMTL(key.depthFormat));
     
     NS::Error* err = nullptr;
     auto* pso = _device->newRenderPipelineState(desc, &err);
@@ -44,6 +45,7 @@ MTL::PixelFormat PipelineLibrary::toMTL(PixelFormat fmt) {
     switch (fmt) {
         case PixelFormat::BGRA8Unorm:  return MTL::PixelFormatBGRA8Unorm;
         case PixelFormat::RGBA16Float: return MTL::PixelFormatRGBA16Float;
+        case PixelFormat::Depth32Float: return MTL::PixelFormatDepth32Float;
         default: return MTL::PixelFormatBGRA8Unorm;
     }
 }

@@ -16,7 +16,6 @@ public:
     CameraState update(const CameraState& current, float dt) override;
     void onMouseDrag(float dx, float dy) override;
     void onScroll(float delta) override;
-    void onKey(int key, bool pressed) override;
 
 private:
     simd_quatf quatFromAxes(const simd_float3& right, 
@@ -72,9 +71,5 @@ inline void OrbitController::onMouseDrag(float dx, float dy) {
 
 inline void OrbitController::onScroll(float delta) {
     _radius = std::max(0.1f, _radius - delta * _zoomSpeed);
-}
-
-inline void OrbitController::onKey(int key, bool pressed) {
-    // stub — implement pan and reset here after mesh instancing
 }
 

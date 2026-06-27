@@ -28,7 +28,10 @@
     
     [window setContentView:view];
     [window setDelegate:self];
+    // This ones required for key events to MetalView, ie camera controls, etc
+    [window makeFirstResponder:view];
     [window makeKeyAndOrderFront:nil];
+    [NSApp activateIgnoringOtherApps:YES];   // pull app to foreground so it gets key focus
 }
 
 - (void) windowWillClose:(NSNotification *)notification {
