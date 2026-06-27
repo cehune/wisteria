@@ -7,6 +7,7 @@
 
 #include "Application.hpp"
 #include "platform/renderer/backend/RasterBackend.hpp"
+#include "engine/io/AssetPath.hpp"
 
 Application::Application(MTL::Device* _device) {
     device = _device;
@@ -42,40 +43,30 @@ void Application::init(MTL::Device* device) {
     this->device = device;
     pool     = std::make_unique<SceneGeometryPool>();
     scene    = std::make_unique<Scene>(*pool);
-        
-    // Hardcode a triangle for now
-    Mesh mesh{};
-    mesh.index = 0;
-    mesh.numTriangles = 1;
-    
-    std::vector<Vertex> verts = {
-        {{ 0.0f,       0.577f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {}, {}, {1.0f, 0.0f, 0.0f, 1.0f}},
-        {{-0.5f,      -0.289f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {}, {}, {0.0f, 1.0f, 0.0f, 1.0f}},
-        {{ 0.5f,      -0.289f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {}, {}, {0.0f, 0.0f, 1.0f, 1.0f}},
-    };
-    
-    std::vector<uint32_t> indices = {0, 1, 2};
+    const std::string teapot = wisteria::assets::samplePath("utah_teapot.obj");
 
-    std::string cow = "/Users/celine/Documents/projects/terrace/terrace/samples/cow.obj";
-
-    // Three cow
-    // TODO: RasterBackend reads instances and will show 3 cows.
-    //       PathTracerBackend doesn't read instances yet (waiting on TLAS)
-    //       so it will show 1 cow at identity, regardless of these transforms.
     auto translation = [](float x, float y, float z) {
         simd::float4x4 m = matrix_identity_float4x4;
         m.columns[3] = {x, y, z, 1.0f};
         return m;
     };
-    scene->addMeshInstance(cow, translation(-3.0f, 0.0f, 0.0f), device);
-    scene->addMeshInstance(cow, translation( 0.0f, 0.0f, 0.0f), device);
-    scene->addMeshInstance(cow, translation( 3.0f, 0.0f, 0.0f), device);
+    scene->addMeshInstance(teapot, translation(-3.0f, 0.0f, 0.0f), device);
+    scene->addMeshInstance(teapot, translation( 0.0f, 0.0f, 0.0f), device);
+    scene->addMeshInstance(teapot, translation( 3.0f, 0.0f, 0.0f), device);
 
-    // create GPU buffers
+    // Build the GPU mega buffers from everything staged above.
     pool->finalize();
-
     std::cout << "uploaded all \n";
 
-    auto backend = std::make_unique<PathTracerBackend>(device, scene.get());
-    renderer = std::make_unique<Renderer>(std::move(backend));
+    renderer = std::make_unique<Renderer>(makeBackend(_backend));
+}
+
+std::unique_ptr<IRenderBackend> Application::makeBackend(BackendType type) {
+    switch (type) {
+        case BackendType::Raster:
+            return std::make_unique<RasterBackend>(device, scene.get());
+        case BackendType::PathTracer:
+            return std::make_unique<PathTracerBackend>(device, scene.get());
+    }
+    return nullptr; // unreachable; enum is exhaustive
 }

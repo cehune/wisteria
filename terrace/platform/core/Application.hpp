@@ -14,6 +14,8 @@
 #include "Renderer.hpp"
 #include "Scene.hpp"
 
+enum class BackendType { Raster, PathTracer };
+
 class Application {
 public:
     // Override if we do a non-metal version of this codebase
@@ -31,6 +33,10 @@ public:
         
 private:
     void init(MTL::Device* device);
+    std::unique_ptr<IRenderBackend> makeBackend(BackendType type);
+
+    // Flip to BackendType::PathTracer to run the compute path tracer.
+    BackendType _backend = BackendType::Raster;
 
     // GPU entry point
     MTL::Device* device = nullptr;
