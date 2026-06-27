@@ -8,6 +8,7 @@
 #include "RasterBackend.hpp"
 
 RasterBackend::~RasterBackend() {
+    if (_depthState) _depthState->release();
     for (auto& buf: _cameraBuffers) {
         if (buf) {
             buf->release();
@@ -36,8 +37,16 @@ RasterBackend::RasterBackend(MTL::Device* device, Scene* scene): _device(device)
     
     lib->release();
     
-    // set camera controller (hardcode for now)
-    _cameraController = OrbitController();
+    // Depth-stencil state: closer fragments win, and we write depth so later
+    // draws test against it. Needed now that instances overlap in the scene.
+    MTL::DepthStencilDescriptor* dsd = MTL::DepthStencilDescriptor::alloc()->init();
+    dsd->setDepthCompareFunction(MTL::CompareFunctionLess);
+    dsd->setDepthWriteEnabled(true);
+    _depthState = device->newDepthStencilState(dsd);
+    dsd->release();
+
+    // Camera controller: fly cam for scene design (swap to OrbitController to orbit).
+    _cameraController = std::make_unique<FlyController>();
 
     std::cout << "rasterizer setup all done \n";
     
@@ -58,12 +67,13 @@ void RasterBackend::draw(const FrameContext& ctx) {
         return;
     }
     enc->setRenderPipelineState(pso);
+    enc->setDepthStencilState(_depthState);
     
     // camera movement based on input actions
-    _currentCameraState = _cameraController.update(_currentCameraState, ctx.dt);
-    _updateCameraBuffer();
-    // CAMERA with TRIPLE BUFFER
+    _currentCameraState = _cameraController->update(_currentCameraState, ctx.dt);
 
+    // Advance the triple-buffer ring, then write this frame's camera into the
+    // slot the GPU isn't reading
     _frameIndex = (_frameIndex + 1) % _maxBuffers;
     _updateCameraBuffer();
 
@@ -118,13 +128,23 @@ void RasterBackend::_updateCameraBuffer() {
 }
 
 void RasterBackend::onKey(int key, bool pressed) {
-    return;
+    // Platform input mapping lives here (platform layer), not in the engine
+    // controllers: translate macOS ANSI key codes into semantic camera actions.
+    switch (key) {
+        case 13: _cameraController->onAction(CameraAction::Forward, pressed); break; // W
+        case 0:  _cameraController->onAction(CameraAction::Left,    pressed); break; // A
+        case 1:  _cameraController->onAction(CameraAction::Back,    pressed); break; // S
+        case 2:  _cameraController->onAction(CameraAction::Right,   pressed); break; // D
+        case 14: _cameraController->onAction(CameraAction::Up,      pressed); break; // E
+        case 12: _cameraController->onAction(CameraAction::Down,    pressed); break; // Q
+        default: break;
+    }
 }
 void RasterBackend::onScroll(float delta) {
-    _cameraController.onScroll(delta);
+    _cameraController->onScroll(delta);
 }
 void RasterBackend::onMouseDrag(float dx, float dy) {
-    _cameraController.onMouseDrag(dx, dy);
+    _cameraController->onMouseDrag(dx, dy);
 }
 
 /**

@@ -7,9 +7,11 @@
 
 #import "MetalView.h"
 #include "platform/renderer/backend/RasterBackend.hpp"
+#import <QuartzCore/QuartzCore.h>
 
 @implementation MetalView {
     Application* app; // Pointer to your C++ engine
+    CFTimeInterval _lastFrameTime;
 }
 
 // Implementation, this is what actually creates the view object, which we need to then insert into the view heiraarchy
@@ -19,8 +21,10 @@
     if (self) {
         self.delegate = self;
         self.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
+        self.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
         self.framebufferOnly = NO;
         app = new Application((__bridge MTL::Device*)self.device);
+        _lastFrameTime = CACurrentMediaTime();
     }
 
     return self;
@@ -39,12 +43,17 @@
     if (!view.currentDrawable || !view.currentRenderPassDescriptor)
         return;
     app->update();
-    
+
+    CFTimeInterval now = CACurrentMediaTime();
+    float dt = static_cast<float>(now - _lastFrameTime);
+    _lastFrameTime = now;
+
     FrameContext ctx;
     ctx.renderPassDesc = (__bridge MTL::RenderPassDescriptor*)view.currentRenderPassDescriptor;
     ctx.drawable       = (__bridge MTL::Drawable*)view.currentDrawable;
     ctx.width          = static_cast<uint32_t>(view.drawableSize.width);
     ctx.height         = static_cast<uint32_t>(view.drawableSize.height);
+    ctx.dt             = dt;
 
     app->render(ctx);
 }
@@ -67,9 +76,9 @@
     app->onKey(event.keyCode, true);
 }
 
-//- (BOOL)acceptsFirstResponder {
-//    //return YES;
-//}
+- (BOOL)acceptsFirstResponder {
+    return YES;
+}
     
 - (void)dealloc {
     std::cout << "debug";

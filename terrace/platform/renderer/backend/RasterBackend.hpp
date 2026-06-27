@@ -12,7 +12,9 @@
 #include "engine/scene/Camera/Camera.hpp"
 #include "engine/scene/CameraUniforms.hpp"
 #include "engine/scene/Camera/OrbitController.hpp"
+#include "engine/scene/Camera/FlyController.hpp"
 #include <iostream>
+#include <memory>
 #include <semaphore>
 
 class RasterBackend : public IRenderBackend {
@@ -37,9 +39,10 @@ private:
     Scene*                           _scene;
     std::unique_ptr<PipelineLibrary> _pipelineLibrary;
     std::vector<PipelineKey>         _pipelines;
+    MTL::DepthStencilState*          _depthState = nullptr;
     Camera                           _camera;
     CameraState                      _currentCameraState;
-    OrbitController                  _cameraController;
+    std::unique_ptr<CameraController> _cameraController;
     
     uint32_t _width  = 0;
     uint32_t _height = 0;
