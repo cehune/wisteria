@@ -1,0 +1,492 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		720A27242FA04A7900061064 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72C8D71F2F66298A00E6F167 /* AppKit.framework */; };
+		720A27252FA04A8000061064 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B0782F6245510084357C /* Metal.framework */; };
+		720A27262FA04A8400061064 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72C8D7162F660FD700E6F167 /* MetalKit.framework */; };
+		720A27282FA04A8800061064 /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 720A27272FA04A8800061064 /* Quartz.framework */; };
+		720A27292FA04A9100061064 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B07A2F6245650084357C /* Foundation.framework */; };
+		72C8D7172F660FD700E6F167 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72C8D7162F660FD700E6F167 /* MetalKit.framework */; };
+		72C8D7202F66298A00E6F167 /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72C8D71F2F66298A00E6F167 /* AppKit.framework */; };
+		72F4B0792F6245510084357C /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B0782F6245510084357C /* Metal.framework */; };
+		72F4B07B2F6245650084357C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B07A2F6245650084357C /* Foundation.framework */; };
+		72F4B07D2F62456D0084357C /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 72F4B07C2F62456D0084357C /* QuartzCore.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		720A27222FA04A6000061064 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 72F4B0652F6243DC0084357C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 72F4B06C2F6243DC0084357C;
+			remoteInfo = wisteria;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		72F4B06B2F6243DC0084357C /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		72023FD72F9F49BF0078C942 /* tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		720A27272FA04A8800061064 /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
+		72C8D7162F660FD700E6F167 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		72C8D71F2F66298A00E6F167 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
+		72F4B06D2F6243DC0084357C /* wisteria */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = wisteria; sourceTree = BUILT_PRODUCTS_DIR; };
+		72F4B0782F6245510084357C /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		72F4B07A2F6245650084357C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		72F4B07C2F62456D0084357C /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		72023FE22F9F4A2B0078C942 /* Exceptions for "wisteria" folder in "tests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				engine/geometry/MeshLoader.cpp,
+				engine/scene/Camera/Camera.cpp,
+				MetalImpl.cpp,
+				platform/scene/Scene.cpp,
+				platform/scene/SceneGeometryPool.cpp,
+			);
+			target = 72023FD62F9F49BF0078C942 /* tests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		72023FD82F9F49BF0078C942 /* tests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = tests;
+			sourceTree = "<group>";
+		};
+		72F4B06F2F6243DC0084357C /* wisteria */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				72023FE22F9F4A2B0078C942 /* Exceptions for "wisteria" folder in "tests" target */,
+			);
+			path = wisteria;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		72023FD42F9F49BF0078C942 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				720A27292FA04A9100061064 /* Foundation.framework in Frameworks */,
+				720A27282FA04A8800061064 /* Quartz.framework in Frameworks */,
+				720A27262FA04A8400061064 /* MetalKit.framework in Frameworks */,
+				720A27252FA04A8000061064 /* Metal.framework in Frameworks */,
+				720A27242FA04A7900061064 /* AppKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		72F4B06A2F6243DC0084357C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				72C8D7202F66298A00E6F167 /* AppKit.framework in Frameworks */,
+				72C8D7172F660FD700E6F167 /* MetalKit.framework in Frameworks */,
+				72F4B07D2F62456D0084357C /* QuartzCore.framework in Frameworks */,
+				72F4B07B2F6245650084357C /* Foundation.framework in Frameworks */,
+				72F4B0792F6245510084357C /* Metal.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		72F4B0642F6243DC0084357C = {
+			isa = PBXGroup;
+			children = (
+				72F4B06F2F6243DC0084357C /* wisteria */,
+				72023FD82F9F49BF0078C942 /* tests */,
+				72F4B0772F6245510084357C /* Frameworks */,
+				72F4B06E2F6243DC0084357C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		72F4B06E2F6243DC0084357C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				72F4B06D2F6243DC0084357C /* wisteria */,
+				72023FD72F9F49BF0078C942 /* tests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		72F4B0772F6245510084357C /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				720A27272FA04A8800061064 /* Quartz.framework */,
+				72C8D71F2F66298A00E6F167 /* AppKit.framework */,
+				72C8D7162F660FD700E6F167 /* MetalKit.framework */,
+				72F4B07C2F62456D0084357C /* QuartzCore.framework */,
+				72F4B07A2F6245650084357C /* Foundation.framework */,
+				72F4B0782F6245510084357C /* Metal.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		72023FD62F9F49BF0078C942 /* tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 72023FDD2F9F49BF0078C942 /* Build configuration list for PBXNativeTarget "tests" */;
+			buildPhases = (
+				72023FD32F9F49BF0078C942 /* Sources */,
+				72023FD42F9F49BF0078C942 /* Frameworks */,
+				72023FD52F9F49BF0078C942 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				720A27232FA04A6000061064 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				72023FD82F9F49BF0078C942 /* tests */,
+			);
+			name = tests;
+			packageProductDependencies = (
+			);
+			productName = tests;
+			productReference = 72023FD72F9F49BF0078C942 /* tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		72F4B06C2F6243DC0084357C /* wisteria */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 72F4B0742F6243DC0084357C /* Build configuration list for PBXNativeTarget "wisteria" */;
+			buildPhases = (
+				72F4B0692F6243DC0084357C /* Sources */,
+				72F4B06A2F6243DC0084357C /* Frameworks */,
+				72F4B06B2F6243DC0084357C /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				72F4B06F2F6243DC0084357C /* wisteria */,
+			);
+			name = wisteria;
+			packageProductDependencies = (
+			);
+			productName = wisteria;
+			productReference = 72F4B06D2F6243DC0084357C /* wisteria */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		72F4B0652F6243DC0084357C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 2640;
+				TargetAttributes = {
+					72023FD62F9F49BF0078C942 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+					72F4B06C2F6243DC0084357C = {
+						CreatedOnToolsVersion = 26.3;
+						LastSwiftMigration = 2630;
+					};
+				};
+			};
+			buildConfigurationList = 72F4B0682F6243DC0084357C /* Build configuration list for PBXProject "wisteria" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 72F4B0642F6243DC0084357C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 72F4B06E2F6243DC0084357C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				72F4B06C2F6243DC0084357C /* wisteria */,
+				72023FD62F9F49BF0078C942 /* tests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		72023FD52F9F49BF0078C942 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		72023FD32F9F49BF0078C942 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		72F4B0692F6243DC0084357C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		720A27232FA04A6000061064 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 72F4B06C2F6243DC0084357C /* wisteria */;
+			targetProxy = 720A27222FA04A6000061064 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		72023FDB2F9F49BF0078C942 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/include",
+					"$(SRCROOT)/include/metal-cpp",
+					"$(SRCROOT)/wisteria",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cehune.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Debug;
+		};
+		72023FDC2F9F49BF0078C942 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/include",
+					"$(SRCROOT)/include/metal-cpp",
+					"$(SRCROOT)/wisteria",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 15.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = cehune.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+			};
+			name = Release;
+		};
+		72F4B0722F6243DC0084357C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+			};
+			name = Debug;
+		};
+		72F4B0732F6243DC0084357C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+			};
+			name = Release;
+		};
+		72F4B0752F6243DC0084357C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"$(SRCROOT)/include/metal-cpp",
+					"$(SRCROOT)/wisteria",
+					"$(SRCROOT)/include",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		72F4B0762F6243DC0084357C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEAD_CODE_STRIPPING = YES;
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"$(SRCROOT)/wisteria",
+					"$(SRCROOT)/include/metal-cpp",
+					"$(SRCROOT)/include",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		72023FDD2F9F49BF0078C942 /* Build configuration list for PBXNativeTarget "tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				72023FDB2F9F49BF0078C942 /* Debug */,
+				72023FDC2F9F49BF0078C942 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		72F4B0682F6243DC0084357C /* Build configuration list for PBXProject "wisteria" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				72F4B0722F6243DC0084357C /* Debug */,
+				72F4B0732F6243DC0084357C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		72F4B0742F6243DC0084357C /* Build configuration list for PBXNativeTarget "wisteria" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				72F4B0752F6243DC0084357C /* Debug */,
+				72F4B0762F6243DC0084357C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 72F4B0652F6243DC0084357C /* Project object */;
+}
