@@ -14,7 +14,7 @@ jobs:
       - name: Run CPU tests
         run: |
           xcodebuild test \
-            -project terrace.xcodeproj \
+            -project wisteria.xcodeproj \
             -scheme "tests" \
             -destination "platform=macOS,arch=arm64"
 
