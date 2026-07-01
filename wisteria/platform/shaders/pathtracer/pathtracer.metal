@@ -6,102 +6,74 @@
 //
 
 #include <metal_stdlib>
+#include <metal_raytracing>
 #include "Types.hpp"
 
 using namespace metal;
-
-static HitResult moller_trumbore(float3 a, float3 b, float3 c, Ray ray, float epsilon) {
-    // this is moller trumbore assuming that the its CCW
-    float3 edge1 = b - a;
-    float3 edge2 = c - a;
-        
-    // now we do cramers rule with determinants to solve for t, u, v simulatenously
-    // treat A = [-D, edge1, edge2], the Ai with the solution T = (O - a) along the diagonal of A
-    // with the solution Xi = det(Ai) / det(A)
-
-    // parallel or front facing test
-    float3 P = cross(ray.direction, edge2);
-    float det_A = dot(P, edge1);
-    
-    if (abs(det_A) < epsilon) return { false, 0, 0, 0 };
-    
-    float3 T = ray.origin - a;
-    float3 Q = cross(T, edge1);
-    float u = dot(P, T) / det_A;
-    float v = dot(Q, ray.direction) / det_A;
-    
-    // barycentric coord checks
-    if (u < 0.0 || u > 1.0) return { false, 0, 0, 0 };
-    if (v < 0.0 || u + v > 1.0) return { false, 0, 0, 0 };
-    
-    float t = dot(Q, edge2) / det_A;
-    
-    if (t > epsilon) {
-        return {true, t, float3(ray.origin + ray.direction * t), float2(u, v)};
-    }
-    return {false, 0, 0, 0 };
-}
-
+using namespace raytracing;
 
 kernel void raytrace_kernel(
-    texture2d<float, access::write>  outTex   [[texture(0)]],
-    texture2d<float, access::read_write> accumTex [[texture(1)]],
-    const device VertexIn*           vertices [[buffer(0)]],
-    const device uint*               indices  [[buffer(1)]],
-    constant uint&                   numTri   [[buffer(2)]],
-    constant CameraUniformsPT&       cam      [[buffer(3)]],
-    constant uint& sampleCount                    [[buffer(4)]],
-    uint2                            gid      [[thread_position_in_grid]])
+    texture2d<float, access::write>       outTex       [[texture(0)]],
+    texture2d<float, access::read_write>  accumTex     [[texture(1)]],
+    const device VertexIn*                vertices     [[buffer(0)]],
+    const device uint*                    indices      [[buffer(1)]],
+    constant CameraUniformsPT&            cam          [[buffer(3)]],
+    constant uint&                        sampleCount  [[buffer(4)]],
+    instance_acceleration_structure       accel        [[buffer(5)]],
+    const device InstanceData*            instanceData [[buffer(6)]],
+    uint2                                 gid          [[thread_position_in_grid]])
 {
     uint W = outTex.get_width();
     uint H = outTex.get_height();
-    // clip space 0, 1
-    float2 uv = float2(gid) / float2(W, H);
-    // NDC -1, 1
+
+    // pixel -> NDC [-1, 1]
+    float2 uv  = float2(gid) / float2(W, H);
     float2 ndc = uv * 2.0 - 1.0;
-    
-    Ray ray;
-    ray.origin = cam.origin;
 
     float aspect = float(W) / float(H);
-    float halfH = tan(cam.fov * 0.5);
-    ray.direction = normalize(
-        cam.forward
-        + cam.right * (ndc.x * aspect * halfH)
-        + cam.up    * (-ndc.y * halfH)
-    );
-    
-    HitResult closest;
-    closest.hit = false;
-    closest.t   = 1e9;
+    float halfH  = tan(cam.fov * 0.5);
 
-    float4 color = float4(0.0, 0.0, 0.0, 1);
-    for (uint i = 0; i < numTri; i++) {
-        VertexIn vA = vertices[indices[i * 3]];
-        VertexIn vB = vertices[indices[i * 3 + 1]];
-        VertexIn vC = vertices[indices[i * 3 + 2]];
+    // primary ray through this pixel
+    ray r;
+    r.origin       = cam.origin;
+    r.direction    = normalize(cam.forward
+                             + cam.right * (ndc.x * aspect * halfH)
+                             + cam.up    * (-ndc.y * halfH));
+    r.min_distance = 1e-4f;
+    r.max_distance = INFINITY;
 
-        HitResult hit = moller_trumbore(vA.position.xyz, vB.position.xyz, vC.position.xyz, ray, 1e-6);
-        if (hit.hit && hit.t < closest.t) {
-            closest = hit;
-            float wA = 1.0 - hit.bary.x - hit.bary.y;
-            float wB = hit.bary.x;
-            float wC = hit.bary.y;
+    // closest-hit traversal of the TLAS (opaque, instanced triangles)
+    intersector<triangle_data, instancing> isect;
+    auto hit = isect.intersect(r, accel);
 
-            float3 normal = normalize(wA * vA.normal.xyz +
-                                          wB * vB.normal.xyz +
-                                          wC * vC.normal.xyz);
-            color = float4(normal * 0.5 + 0.5, 1.0);
-//            color = float4(wA * vA.color.xyz
-//                         + hit.bary.x * vB.color.xyz
-//                         + hit.bary.y * vC.color.xyz, 1.0);
-        }
+    float4 color = float4(0.0, 0.0, 0.0, 1.0);
+    if (hit.type == intersection_type::triangle) {
+        // instance_id -> this mesh's index range; primitive_id -> its triangle.
+        InstanceData inst = instanceData[hit.instance_id];
+        uint base = inst.indexOffset + hit.primitive_id * 3;
+
+        VertexIn vA = vertices[indices[base + 0]];
+        VertexIn vB = vertices[indices[base + 1]];
+        VertexIn vC = vertices[indices[base + 2]];
+
+        float2 bc = hit.triangle_barycentric_coord;
+        float  wA = 1.0 - bc.x - bc.y;
+        float  wB = bc.x;
+        float  wC = bc.y;
+
+        // object-space smooth normal, then to world via the instance transform's
+        // upper 3x3 (exact for rigid / uniform scale). The transform is carried in
+        // InstanceData — intersection_result doesn't expose it under these tags.
+        float3   nObj   = normalize(wA * vA.normal.xyz + wB * vB.normal.xyz + wC * vC.normal.xyz);
+        float4x4 o2w    = inst.transform;
+        float3   nWorld = normalize(float3x3(o2w[0].xyz, o2w[1].xyz, o2w[2].xyz) * nObj);
+
+        color = float4(nWorld * 0.5 + 0.5, 1.0);
     }
-    float4 prev = accumTex.read(gid);
+
+    // cumulative moving average across accumulated samples
+    float4 prev  = accumTex.read(gid);
     float4 accum = (prev * float(sampleCount) + color) / float(sampleCount + 1);
     accumTex.write(accum, gid);
-
-    // write display output
     outTex.write(accum, gid);
 }
-

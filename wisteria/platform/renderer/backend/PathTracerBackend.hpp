@@ -7,6 +7,7 @@
 
 #pragma once
 #include "IRenderBackend.hpp"
+#include "AccelStructures.hpp"
 #include <Metal/Metal.hpp>
 #include "platform/scene/Scene.hpp"
 #include <QuartzCore/QuartzCore.hpp>
@@ -49,6 +50,10 @@ private:
     MTL::Texture*                   _accumulation = nullptr;
     bool                            _dirty        = true;
     uint32_t                        _sampleCount  = 0;
+
+    // acceleration structures (BLAS per mesh + TLAS over instances)
+    AccelStructures                 _accel;
+    bool                            _accelBuilt = false;
 
     uint32_t _width = 800;
     uint32_t _height = 600;

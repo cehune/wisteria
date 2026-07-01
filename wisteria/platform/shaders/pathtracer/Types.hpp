@@ -20,22 +20,19 @@ struct VertexIn {
     float4 color;
 };
 
-struct Ray {
-    float3 origin;
-    float3 direction;
-};
-
-struct HitResult {
-    bool hit;
-    float t;
-    float3 position;
-    float2 bary;
-};
-
 struct CameraUniformsPT {
     float3 origin;
     float3 forward;
     float3 up;
     float3 right;
     float fov;
+};
+
+// Per-instance payload the kernel reads by intersection instance_id, to map a
+// hit back to its mesh's index range (+ material). CPU mirror lives in
+// AccelStructures.hpp — keep the two in sync by hand.
+struct InstanceData {
+    uint indexOffset;
+    uint materialID;
+    float4x4 transform;   // object -> world; upper 3x3 used for normals
 };
