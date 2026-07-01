@@ -26,7 +26,7 @@ inline Spectrum env_radiance(float3 d) {
 kernel void raytrace_kernel(
     texture2d<float, access::write>       outTex       [[texture(0)]],
     texture2d<float, access::read_write>  accumTex     [[texture(1)]],
-    const device VertexIn*                vertices     [[buffer(0)]],
+    const device Vertex*                vertices     [[buffer(0)]],
     const device uint*                    indices      [[buffer(1)]],
     constant CameraUniformsPT&            cam          [[buffer(3)]],
     constant uint&                        sampleCount  [[buffer(4)]],
@@ -74,9 +74,9 @@ kernel void raytrace_kernel(
         InstanceData inst   = instanceData[hit.instance_id];
         Spectrum     albedo = materials[inst.materialID].albedo;
         uint base = inst.indexOffset + hit.primitive_id * 3;
-        VertexIn vA = vertices[indices[base + 0]];
-        VertexIn vB = vertices[indices[base + 1]];
-        VertexIn vC = vertices[indices[base + 2]];
+        Vertex vA = vertices[indices[base + 0]];
+        Vertex vB = vertices[indices[base + 1]];
+        Vertex vC = vertices[indices[base + 2]];
         float2 bc = hit.triangle_barycentric_coord;
         float  wA = 1.0f - bc.x - bc.y, wB = bc.x, wC = bc.y;
 

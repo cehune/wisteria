@@ -8,8 +8,11 @@
 #include "AccelStructures.hpp"
 
 // One shared definition makes CPU/GPU drift impossible; these pin the ABI size.
-static_assert(sizeof(Material)     == 32, "Material layout changed");
-static_assert(sizeof(InstanceData) == 80, "InstanceData layout changed");
+static_assert(sizeof(Material)             == 32, "Material layout changed");
+static_assert(sizeof(InstanceData)         == 80, "InstanceData layout changed");
+static_assert(sizeof(CameraUniformsPT)     == 80, "CameraUniformsPT layout changed");
+static_assert(sizeof(CameraUniformsRaster) == 64, "CameraUniformsRaster layout changed");
+static_assert(sizeof(Vertex)               == 80, "Vertex layout changed");
 
 AccelStructures::~AccelStructures() {
     for (auto* b : _blases) if (b) b->release();

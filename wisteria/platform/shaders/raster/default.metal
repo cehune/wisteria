@@ -12,8 +12,8 @@ using namespace metal;
 
 vertex VertexOut vertex_main(
     uint vid [[vertex_id]],
-    device VertexIn*            verts [[buffer(0)]],
-    constant CameraUniforms&    cam   [[buffer(1)]],
+    device Vertex*            verts [[buffer(0)]],
+    constant CameraUniformsRaster&    cam   [[buffer(1)]],
     constant float4x4&           model [[buffer(2)]]) // transforms
 {
     VertexOut out;

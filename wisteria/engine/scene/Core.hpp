@@ -9,17 +9,9 @@
 #include <iostream>
 #include <cstdint>
 #include "engine/geometry/Config.hpp"
+#include "platform/shaders/SharedTypes.h"   // struct Vertex (shared CPU/GPU ABI)
 
 using PipelineID = uint32_t;
-
-// vertexes
-struct Vertex {
-    Vec4 position;
-    Vec4 normal;
-    Vec2 uv;
-    Vec4 tangent;
-    Vec4 color;
-};
 
 inline void printVertex(const Vertex& v) {
     std::cout << "position: " << v.position.x << ", " << v.position.y << ", " << v.position.z << "\n";
