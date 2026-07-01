@@ -8,6 +8,7 @@
 #include <metal_stdlib>
 #include <metal_raytracing>
 #include "Types.hpp"
+#include "../common/Sampler/IndependentSampler.h"
 
 using namespace metal;
 using namespace raytracing;
@@ -27,7 +28,8 @@ kernel void raytrace_kernel(
     uint H = outTex.get_height();
 
     // pixel -> NDC [-1, 1]
-    float2 uv  = float2(gid) / float2(W, H);
+    IndependentSampler rng = make_sampler(gid, sampleCount);
+    float2 uv  = (float2(gid) + next_2d(rng)) / float2(W, H);
     float2 ndc = uv * 2.0 - 1.0;
 
     float aspect = float(W) / float(H);
