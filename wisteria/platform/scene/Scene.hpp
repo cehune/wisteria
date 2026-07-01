@@ -9,6 +9,7 @@
 #include <Metal/Metal.hpp>
 #include "engine/scene/Mesh.hpp"
 #include "engine/scene/Core.hpp"
+#include "engine/scene/Material.hpp"
 #include "SceneGeometryPool.hpp"
 #include <simd/simd.h>
 #include <unordered_map>
@@ -16,6 +17,7 @@
 class Scene {
 public:
     Scene(IGeometryPool& pool);
+    ~Scene() { if (_materialBuffer) _materialBuffer->release(); }
     void loadMesh(const std::string& path, uint32_t materialID,
                      const simd::float4x4& transform, MTL::Device* device);
     void addMeshDirect(Mesh& mesh,
@@ -27,7 +29,13 @@ public:
     // Returns false (and adds nothing) if the mesh fails to load.
     bool addMeshInstance(const std::string& meshfilepath,
                          const simd::float4x4& transform,
-                         MTL::Device* device);
+                         MTL::Device* device,
+                         uint32_t materialID = 0);
+
+    // Materials (descriptions). materialBuffer() is (re)built by buildMaterialBuffer().
+    uint32_t addMaterial(const Material& m) { _materials.push_back(m); return (uint32_t)_materials.size() - 1; }
+    std::vector<Material>& materials() { return _materials; }
+    void buildMaterialBuffer(MTL::Device* device);
 
     // call before render for setup
     // void finalize(MTL::Device* device);
@@ -46,6 +54,7 @@ public:
 private:
     std::vector<Mesh>               _meshes;
     std::vector<MeshInstance>       _meshInstances;
+    std::vector<Material>           _materials;
     std::unordered_map<std::string, int> _fileToMeshIndex;
 
     // materials

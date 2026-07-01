@@ -32,6 +32,7 @@ kernel void raytrace_kernel(
     constant uint&                        sampleCount  [[buffer(4)]],
     instance_acceleration_structure       accel        [[buffer(5)]],
     const device InstanceData*            instanceData [[buffer(6)]],
+    const device Material*                materials    [[buffer(7)]],
     uint2                                 gid          [[thread_position_in_grid]])
 {
     uint W = outTex.get_width();
@@ -56,8 +57,7 @@ kernel void raytrace_kernel(
     // --- unidirectional path tracer: BSDF sampling against a constant-env light ---
     // No NEE / MIS / Russian roulette yet . Albedo is a placeholder
     // until the material buffer lands (next commit).
-    const uint     MAX_DEPTH = 8;
-    const Spectrum albedo    = Spectrum(0.72f);   // TODO: materials[instanceData[id].materialID]
+    const uint MAX_DEPTH = 8;
 
     Spectrum throughput = Spectrum(1.0f);
     Spectrum L          = Spectrum(0.0f);
@@ -70,8 +70,9 @@ kernel void raytrace_kernel(
             break;
         }
 
-        // triangle -> interpolated world shading normal
-        InstanceData inst = instanceData[hit.instance_id];
+        // triangle -> interpolated world shading normal + this instance's material
+        InstanceData inst   = instanceData[hit.instance_id];
+        Spectrum     albedo = materials[inst.materialID].albedo;
         uint base = inst.indexOffset + hit.primitive_id * 3;
         VertexIn vA = vertices[indices[base + 0]];
         VertexIn vB = vertices[indices[base + 1]];

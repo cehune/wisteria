@@ -23,7 +23,8 @@ void Scene::addMeshDirect(Mesh& mesh,
 
 bool Scene::addMeshInstance(const std::string& mesh_file_path,
                             const simd::float4x4& transform,
-                            MTL::Device* device)
+                            MTL::Device* device,
+                            uint32_t materialID)
 {
     uint32_t meshIndex;
     auto iter = _fileToMeshIndex.find(mesh_file_path);
@@ -53,7 +54,7 @@ bool Scene::addMeshInstance(const std::string& mesh_file_path,
     MeshInstance instance;
     instance.index = _meshInstances.size();
     instance.meshIndex = mesh.index;
-    instance.materialID = 0;   // TODO: real material assignment
+    instance.materialID = materialID;
     instance.pipelineID = 0;   // TODO: per-instance pipeline selection
     instance.boundsMin = mesh.localBoundsMin;
     instance.boundsMax = mesh.localBoundsMax;
@@ -67,4 +68,12 @@ bool Scene::addMeshInstance(const std::string& mesh_file_path,
     mesh.meshInstanceIndexes.push_back(instance.index);
     _meshInstances.push_back(instance);
     return true;
+}
+
+void Scene::buildMaterialBuffer(MTL::Device* device) {
+    if (_materials.empty()) return;
+    if (_materialBuffer) _materialBuffer->release();
+    _materialBuffer = device->newBuffer(_materials.data(),
+                                        _materials.size() * sizeof(Material),
+                                        MTL::ResourceStorageModeShared);
 }

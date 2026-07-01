@@ -115,9 +115,10 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
         _sampleCount = 0;
     }
     
-    // Build BLAS/TLAS once, lazily (geometry is finalized by the first draw).
+    // Build BLAS/TLAS + material buffer once, lazily (geometry is finalized by first draw).
     if (!_accelBuilt) {
         _accel.build(_device, _commandQueue, *_scene);
+        _scene->buildMaterialBuffer(_device);
         _accelBuilt = true;
     }
 
@@ -146,6 +147,7 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
         for (MTL::AccelerationStructure* b : _accel.blases())
             if (b) enc->useResource(b, MTL::ResourceUsageRead);
     }
+    enc->setBuffer(_scene->materialBuffer(), 0, 7);   // per-instance materials
 
     // run the kernel function per pixel per thread, (makes as many threads as pixels)
     NS::UInteger tw = _pso->threadExecutionWidth();

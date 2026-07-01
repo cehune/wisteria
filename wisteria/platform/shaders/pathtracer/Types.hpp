@@ -36,3 +36,9 @@ struct InstanceData {
     uint materialID;
     float4x4 transform;   // object -> world; upper 3x3 used for normals
 };
+
+// GPU mirror of the CPU Material (engine/scene/Material.hpp) — keep in sync.
+struct Material {
+    uint   type;      // 0 = Lambertian
+    float3 albedo;
+};

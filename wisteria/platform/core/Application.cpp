@@ -50,9 +50,14 @@ void Application::init(MTL::Device* device) {
         m.columns[3] = {x, y, z, 1.0f};
         return m;
     };
-    scene->addMeshInstance(teapot, translation(-3.0f, 0.0f, 0.0f), device);
-    scene->addMeshInstance(teapot, translation( 0.0f, 0.0f, 0.0f), device);
-    scene->addMeshInstance(teapot, translation( 3.0f, 0.0f, 0.0f), device);
+    // three Lambertian materials so the per-instance material path is visible
+    uint32_t matRed   = scene->addMaterial({ MATERIAL_LAMBERTIAN, { 0.85f, 0.25f, 0.25f } });
+    uint32_t matGreen = scene->addMaterial({ MATERIAL_LAMBERTIAN, { 0.30f, 0.75f, 0.35f } });
+    uint32_t matBlue  = scene->addMaterial({ MATERIAL_LAMBERTIAN, { 0.30f, 0.45f, 0.85f } });
+
+    scene->addMeshInstance(teapot, translation(-3.0f, 0.0f, 0.0f), device, matRed);
+    scene->addMeshInstance(teapot, translation( 0.0f, 0.0f, 0.0f), device, matGreen);
+    scene->addMeshInstance(teapot, translation( 3.0f, 0.0f, 0.0f), device, matBlue);
 
     // Build the GPU mega buffers from everything staged above.
     pool->finalize();
