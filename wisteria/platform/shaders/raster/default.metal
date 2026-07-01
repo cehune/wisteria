@@ -6,7 +6,7 @@
 //
 
 #include <metal_stdlib>
-#include "Types.hpp"
+#include "../common/Types.h"
 using namespace metal;
 
 

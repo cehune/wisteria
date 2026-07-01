@@ -7,7 +7,7 @@
 
 #include <metal_stdlib>
 #include <metal_raytracing>
-#include "Types.hpp"
+#include "../common/Types.h"
 #include "../common/Spectrum.h"
 #include "../common/Frame.h"
 #include "../common/bxdf/Lambertian.h"

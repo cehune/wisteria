@@ -6,17 +6,10 @@
 //
 
 #pragma once
-#include <simd/simd.h>
 #include <cstdint>
+#include "platform/shaders/SharedTypes.h"   // struct Material (shared CPU/GPU ABI)
 
 enum MaterialType : uint32_t { MATERIAL_LAMBERTIAN = 0 };
 
-// CPU mirror of the GPU Material in platform/shaders/pathtracer/Types.hpp.
-// Keep the two layouts in sync by hand.
-// uint32 is fine, metal pads anyways so no diff between 32 and 8
-struct Material {
-    uint32_t    type;     // MaterialType
-    simd_float3 albedo;
-};
-
-// all thats needed for diffuse lambertian: type, albedo
+// The Material struct lives in shared/SharedTypes.h — one definition compiled by
+// both C++ and Metal, so the layout can't drift. This header keeps the enum.

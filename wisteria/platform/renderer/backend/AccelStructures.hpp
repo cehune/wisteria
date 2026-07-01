@@ -10,14 +10,7 @@
 #include <vector>
 #include "platform/scene/Scene.hpp"
 #include "platform/geometry/GeometryUtils.hpp"
-
-// CPU mirror of the shader-side InstanceData (pathtracer/Types.hpp). Maps a
-// hit's instance_id back to its mesh's index range + material. Keep in sync.
-struct InstanceData {
-    uint32_t indexOffset;
-    uint32_t materialID;
-    simd_float4x4 transform;   // object -> world; mirrors Types.hpp (16-byte aligned)
-};
+#include "platform/shaders/SharedTypes.h"   // struct InstanceData (shared CPU/GPU ABI)
 
 // Owns the path tracer's Metal BVH: one BLAS per unique mesh (built from the
 // mega-buffer index ranges) and one TLAS over all MeshInstances. build() is a
