@@ -36,7 +36,7 @@ private:
     std::unique_ptr<IRenderBackend> makeBackend(BackendType type);
 
     // Flip to BackendType::PathTracer to run the compute path tracer.
-    BackendType _backend = BackendType::Raster;
+    BackendType _backend = BackendType::PathTracer;
 
     // GPU entry point
     MTL::Device* device = nullptr;

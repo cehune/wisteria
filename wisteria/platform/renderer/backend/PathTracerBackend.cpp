@@ -49,7 +49,7 @@ void PathTracerBackend::_buildOffscreenTexture(uint32_t w, uint32_t h) {
     if (_offscreen) _offscreen->release();
 
     MTL::TextureDescriptor* td = MTL::TextureDescriptor::texture2DDescriptor(
-        MTL::PixelFormatRGBA8Unorm, w, h, false);
+        MTL::PixelFormatBGRA8Unorm, w, h, false);
     td->setUsage(MTL::TextureUsageShaderWrite);
     td->setStorageMode(MTL::StorageModePrivate);  // GPU-only, blit to drawable after
 
@@ -115,27 +115,37 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
         _sampleCount = 0;
     }
     
+    // Build BLAS/TLAS once, lazily (geometry is finalized by the first draw).
+    if (!_accelBuilt) {
+        _accel.build(_device, _commandQueue, *_scene);
+        _accelBuilt = true;
+    }
+
     IGeometryPool& pool = _scene->geometryPool();
     MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
     MTL::ComputeCommandEncoder* enc = cmd->computeCommandEncoder();
     // pso is built from buildPipeline based on a given metal shader
     enc->setComputePipelineState(_pso);
 
-    // total triangles for set of all meshes
-    uint32_t totalTri = 0;
-    // TODO: use mesh instances once we switch to proper tracing
-    for (Mesh& m : _scene->meshes()) totalTri += m.numTriangles;
-
     MTL::Buffer* vb = pool.vertexBuffer();
     MTL::Buffer* ib = pool.indexBuffer();
 
     enc->setTexture(_offscreen, 0);
     enc->setTexture(_accumulation, 1);
-    enc->setBuffer(vb,            0, 0);
-    enc->setBuffer(ib,            0, 1);
-    enc->setBytes(&totalTri, sizeof(uint32_t), 2);
+    enc->setBuffer(vb,            0, 0);   // mega VB — for normal re-fetch on hit
+    enc->setBuffer(ib,            0, 1);   // mega IB
+    // buffer(2) (triangle count) retired — traversal is via the TLAS now.
     enc->setBuffer(_cameraBuffer, 0, 3);
     enc->setBytes(&_sampleCount, sizeof(uint32_t), 4);
+
+    // TLAS (buffer 5) + per-instance shading payload (buffer 6) for the kernel.
+    // Residency: a TLAS does NOT keep its BLASes resident, so mark each used.
+    if (_accel.tlas()) {
+        enc->setAccelerationStructure(_accel.tlas(), 5);
+        enc->setBuffer(_accel.instanceData(), 0, 6);
+        for (MTL::AccelerationStructure* b : _accel.blases())
+            if (b) enc->useResource(b, MTL::ResourceUsageRead);
+    }
 
     // run the kernel function per pixel per thread, (makes as many threads as pixels)
     NS::UInteger tw = _pso->threadExecutionWidth();

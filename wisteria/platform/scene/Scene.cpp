@@ -25,7 +25,7 @@ bool Scene::addMeshInstance(const std::string& mesh_file_path,
                             const simd::float4x4& transform,
                             MTL::Device* device)
 {
-    uint16_t meshIndex;
+    uint32_t meshIndex;
     auto iter = _fileToMeshIndex.find(mesh_file_path);
 
     // generate new mesh and new instance
