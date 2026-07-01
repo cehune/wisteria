@@ -28,8 +28,8 @@ struct Mesh {
 };
 
 struct MeshInstance {
-    uint8_t meshIndex; // in scene meshes vector
-    uint8_t index;     // in scene meshInstance vector
+    uint32_t meshIndex; // in scene meshes vector
+    uint32_t index;     // in scene meshInstance vector
     uint32_t materialID;
     simd_float4x4 transform;
     PipelineID pipelineID; // index of pipelineID in renderer
