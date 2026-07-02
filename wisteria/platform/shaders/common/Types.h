@@ -7,11 +7,11 @@
 
 #pragma once
 #include <metal_stdlib>
-#include "../SharedTypes.h"   // InstanceData + Material (shared CPU/GPU ABI)
+#include "../../../engine/gpu/SharedTypes.h"
 
 using namespace metal;
 
-// Vertex (the mega-VB element) now comes from ../SharedTypes.h. VertexOut is the
+// Vertex (the mega-VB element) now comes from engine/gpu/SharedTypes.h. VertexOut is the
 // vertex-stage output — GPU-only ([[position]]), so it stays here.
 struct VertexOut {
     float4 position [[position]];
@@ -21,5 +21,5 @@ struct VertexOut {
     float4 color;
 };
 
-// InstanceData + Material now come from ../SharedTypes.h — one definition,
+// InstanceData + Material now come from engine/gpu/SharedTypes.h — one definition,
 // compiled by both C++ and Metal. Only VertexOut (above) stays GPU-only.

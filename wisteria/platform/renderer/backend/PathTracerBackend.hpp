@@ -12,7 +12,6 @@
 #include "platform/scene/Scene.hpp"
 #include <QuartzCore/QuartzCore.hpp>
 #include <iostream>
-#include "engine/scene/CameraUniforms.hpp"
 #include "engine/scene/Camera/Camera.hpp"
 
 class PathTracerBackend : public IRenderBackend {

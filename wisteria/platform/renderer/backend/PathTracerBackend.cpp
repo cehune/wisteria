@@ -10,7 +10,7 @@
 PathTracerBackend::PathTracerBackend(MTL::Device* device, Scene* scene): _device(device), _scene(scene) {
     // TEMP
     _currentCameraState = CameraState();
-    _currentCameraState.position = {0.0f,2.0f,15.0f};
+    _currentCameraState.position = {0.0f, 1.0f, 4.2f};   // outside the Cornell box, looking -z
     
     _commandQueue = device->newCommandQueue();
     _buildPipeline();
@@ -119,6 +119,7 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     if (!_accelBuilt) {
         _accel.build(_device, _commandQueue, *_scene);
         _scene->buildMaterialBuffer(_device);
+        _scene->buildLightBuffer(_device);
         _accelBuilt = true;
     }
 
@@ -148,6 +149,12 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
             if (b) enc->useResource(b, MTL::ResourceUsageRead);
     }
     enc->setBuffer(_scene->materialBuffer(), 0, 7);   // per-instance materials
+
+    // area lights (buffer 8) + count (buffer 9). A light-less scene binds nothing
+    // at 8, so the kernel gates all light reads on numLights > 0.
+    if (_scene->lightBuffer()) enc->setBuffer(_scene->lightBuffer(), 0, 8);
+    uint32_t numLights = _scene->numLights();
+    enc->setBytes(&numLights, sizeof(uint32_t), 9);
 
     // run the kernel function per pixel per thread, (makes as many threads as pixels)
     NS::UInteger tw = _pso->threadExecutionWidth();

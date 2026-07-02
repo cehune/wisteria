@@ -10,7 +10,6 @@
 #include "platform/renderer/PipelineLibrary.hpp"
 #include "platform/scene/Scene.hpp"
 #include "engine/scene/Camera/Camera.hpp"
-#include "engine/scene/CameraUniforms.hpp"
 #include "engine/scene/Camera/OrbitController.hpp"
 #include "engine/scene/Camera/FlyController.hpp"
 #include <iostream>

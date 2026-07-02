@@ -31,6 +31,7 @@ struct MeshInstance {
     uint32_t meshIndex; // in scene meshes vector
     uint32_t index;     // in scene meshInstance vector
     uint32_t materialID;
+    int32_t  lightID = -1;
     simd_float4x4 transform;
     PipelineID pipelineID; // index of pipelineID in renderer
     Vec4 boundsMin;

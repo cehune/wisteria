@@ -7,6 +7,7 @@
 
 #include <metal_stdlib>
 #include "../common/Types.h"
+#include "../../../engine/gpu/SharedTypes.h"
 using namespace metal;
 
 

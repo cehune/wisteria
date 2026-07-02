@@ -8,6 +8,7 @@
 #include <metal_stdlib>
 #include <metal_raytracing>
 #include "../common/Types.h"
+#include "../../../engine/gpu/SharedTypes.h"
 #include "../common/Spectrum.h"
 #include "../common/Frame.h"
 #include "../common/bxdf/Lambertian.h"
@@ -19,8 +20,7 @@ using namespace raytracing;
 // Constant/gradient environment light — the only emitter for now.
 // Flatten to a constant Spectrum(x) for the white-furnace test.
 inline Spectrum env_radiance(float3 d) {
-    float t = clamp(0.5f * d.y + 0.5f, 0.0f, 1.0f);
-    return mix(Spectrum(0.03f), Spectrum(0.55f, 0.70f, 1.0f), t);
+    return Spectrum(0.0f);   // enclosed Cornell box: no environment light
 }
 
 kernel void raytrace_kernel(
@@ -33,6 +33,8 @@ kernel void raytrace_kernel(
     instance_acceleration_structure       accel        [[buffer(5)]],
     const device InstanceData*            instanceData [[buffer(6)]],
     const device Material*                materials    [[buffer(7)]],
+    const device Light*                   lights       [[buffer(8)]],
+    constant uint&                        numLights    [[buffer(9)]],
     uint2                                 gid          [[thread_position_in_grid]])
 {
     uint W = outTex.get_width();
@@ -86,6 +88,18 @@ kernel void raytrace_kernel(
 
         float3 hitP = r.origin + r.direction * hit.distance;
         float3 woW  = -r.direction;
+
+        // --- emitter hit (naive: every front-facing hit counts; NEE will gate this) ---
+        if (inst.lightID >= 0) {
+            float3 pA = (o2w * vA.position).xyz;
+            float3 pB = (o2w * vB.position).xyz;
+            float3 pC = (o2w * vC.position).xyz;
+            float3 gN = normalize(cross(pB - pA, pC - pA));   // geometric normal (matches NEE later)
+            Light  lt = lights[inst.lightID];
+            if (lt.twoSided != 0 || dot(gN, woW) > 0.0f)
+                L += throughput * lt.radiance;
+        }
+
         if (dot(ns, woW) < 0.0f) ns = -ns;              // face the viewer (two-sided)
 
         // shading frame + local outgoing direction

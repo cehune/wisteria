@@ -43,21 +43,10 @@ void Application::init(MTL::Device* device) {
     this->device = device;
     pool     = std::make_unique<SceneGeometryPool>();
     scene    = std::make_unique<Scene>(*pool);
-    const std::string teapot = wisteria::assets::samplePath("utah_teapot.obj");
-
-    auto translation = [](float x, float y, float z) {
-        simd::float4x4 m = matrix_identity_float4x4;
-        m.columns[3] = {x, y, z, 1.0f};
-        return m;
-    };
-    // three Lambertian materials so the per-instance material path is visible
-    uint32_t matRed   = scene->addMaterial({ MATERIAL_LAMBERTIAN, { 0.85f, 0.25f, 0.25f } });
-    uint32_t matGreen = scene->addMaterial({ MATERIAL_LAMBERTIAN, { 0.30f, 0.75f, 0.35f } });
-    uint32_t matBlue  = scene->addMaterial({ MATERIAL_LAMBERTIAN, { 0.30f, 0.45f, 0.85f } });
-
-    scene->addMeshInstance(teapot, translation(-3.0f, 0.0f, 0.0f), device, matRed);
-    scene->addMeshInstance(teapot, translation( 0.0f, 0.0f, 0.0f), device, matGreen);
-    scene->addMeshInstance(teapot, translation( 3.0f, 0.0f, 0.0f), device, matBlue);
+    // Cornell box: walls, two blocks, and an emissive ceiling quad. Materials come
+    // straight from the MTL (Kd -> albedo, Ke -> area light) — no hardcoded materials.
+    scene->loadObjScene(wisteria::assets::samplePath("cornell_box.obj"),
+                        matrix_identity_float4x4, device);
 
     // Build the GPU mega buffers from everything staged above.
     pool->finalize();

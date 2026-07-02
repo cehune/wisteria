@@ -9,7 +9,7 @@
 #include <iostream>
 #include <cstdint>
 #include "engine/geometry/Config.hpp"
-#include "platform/shaders/SharedTypes.h"   // struct Vertex (shared CPU/GPU ABI)
+#include "engine/gpu/SharedTypes.h"   // struct Vertex (shared CPU/GPU ABI)
 
 using PipelineID = uint32_t;
 
