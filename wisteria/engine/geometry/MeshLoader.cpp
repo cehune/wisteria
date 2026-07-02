@@ -8,65 +8,7 @@
 #include "MeshLoader.hpp"
 #include <iostream>
 
-void MeshLoader::loadObjMesh(const std::string& meshPath,
-                std::vector<Vertex>& vertices,
-                std::vector<uint32_t>& indices) {
-    if (meshPath.empty()) throw std::runtime_error("Attempted to load bad mesh path");
-
-    rapidobj::Result result = rapidobj::ParseFile(meshPath);
-    
-    if (result.error) throw std::runtime_error(result.error.code.message());
-    rapidobj::Triangulate(result); // just in case its quads lol
-    bool normal_flag = true; // assume normals are included in the obj
-    
-    for (const rapidobj::Shape& shape: result.shapes) {
-        for (const auto& index: shape.mesh.indices) {
-            Vertex v{};
-            
-            // positions
-            int pos_index = index.position_index;
-            if (pos_index >= 0 && !result.attributes.positions.empty()) {
-                v.position = {
-                    result.attributes.positions[pos_index * 3],
-                    result.attributes.positions[pos_index * 3 + 1],
-                    result.attributes.positions[pos_index * 3 + 2],
-                    1.0
-                };
-            }
-            
-            // normals
-            int norm_index = index.normal_index;
-            if (norm_index >= 0 && !result.attributes.normals.empty()) {
-                v.normal = {
-                    result.attributes.normals[norm_index * 3],
-                    result.attributes.normals[norm_index * 3 + 1],
-                    result.attributes.normals[norm_index * 3 + 2]
-                };
-            } else {
-                normal_flag = false;
-            }
-            
-            // texture uvs
-            int tex_index = index.texcoord_index;
-            if (tex_index >= 0 && !result.attributes.texcoords.empty()) {
-                v.uv = {
-                    result.attributes.texcoords[tex_index * 2],
-                    result.attributes.texcoords[tex_index * 2 + 1]
-                };
-            }
-            indices.push_back(static_cast<uint32_t>(vertices.size()));
-            vertices.push_back(v);
-        }
-    }
-    if (!normal_flag) {
-        getMeshNormals(vertices, indices);
-    }
-    printVertex(vertices.front());
-        
-}
-
-
-void MeshLoader::getMeshNormals(std::vector<Vertex>& vertices,
+void Geometry::Internal::getMeshNormals(std::vector<Vertex>& vertices,
                                 std::vector<uint32_t>& indices) {
     for (uint32_t i = 0; i < indices.size(); i += 3) {
         Vertex& vA = vertices[indices[i]];
@@ -84,7 +26,7 @@ void MeshLoader::getMeshNormals(std::vector<Vertex>& vertices,
     }
 }
 
-void MeshLoader::loadObjSubmeshes(const std::string& meshPath, std::vector<ObjSubmesh>& out) {
+void Geometry::Internal::loadObjSubmeshes(const std::string& meshPath, std::vector<ObjSubmesh>& out) {
     if (meshPath.empty()) throw std::runtime_error("bad mesh path");
 
     rapidobj::Result result = rapidobj::ParseFile(meshPath);
@@ -106,7 +48,7 @@ void MeshLoader::loadObjSubmeshes(const std::string& meshPath, std::vector<ObjSu
 }
 
 
-void MeshLoader::processShape(const rapidobj::Shape& shape, const rapidobj::Result& result,
+void Geometry::Internal::processShape(const rapidobj::Shape& shape, const rapidobj::Result& result,
                              std::vector<ObjSubmesh>& out, std::unordered_map<int, size_t>& matToSub) {
     
     for (size_t tri = 0; tri < shape.mesh.indices.size() / 3; ++tri) { // For each triangle
@@ -122,7 +64,7 @@ void MeshLoader::processShape(const rapidobj::Shape& shape, const rapidobj::Resu
     }
 }
 
-Vertex MeshLoader::extractVertex(const rapidobj::Index& ix, const rapidobj::Result& res) {
+Vertex Geometry::Internal::extractVertex(const rapidobj::Index& ix, const rapidobj::Result& res) {
     // reads a given POINT VECTOR in the mesh, and then for a given submesh, each vertex should
     // correspond uniquely to one
     Vertex v{};
@@ -153,7 +95,7 @@ Vertex MeshLoader::extractVertex(const rapidobj::Index& ix, const rapidobj::Resu
     return v;
 }
 
-ObjSubmesh& MeshLoader::getOrCreateSubmesh(int matID,
+ObjSubmesh& Geometry::Internal::getOrCreateSubmesh(int matID,
                                           const rapidobj::Result& result,
                                           std::vector<ObjSubmesh>& out,
                                           std::unordered_map<int, size_t>& matToSub) {

@@ -8,9 +8,7 @@
 #include "SceneGeometryPool.hpp"
 #include <cassert>
 
-SceneGeometryPool::SceneGeometryPool() {
-    _meshLoader = MeshLoader();
-}
+SceneGeometryPool::SceneGeometryPool() {}
 
 SceneGeometryPool::~SceneGeometryPool() {
     if (_vertexBuffer) _vertexBuffer->release();
@@ -55,16 +53,6 @@ void SceneGeometryPool::uploadMesh(Mesh& mesh,
                                    MTL::Device* device)
 {
     if (!_device) _device = device;
-    _appendGeometry(mesh, verts, indices);
-}
-
-void SceneGeometryPool::uploadMeshFile(Mesh& mesh, const std::string& meshPath, MTL::Device* device) {
-    if (!_device) _device = device;
-
-    std::vector<Vertex>   verts;
-    std::vector<uint32_t> indices;
-    _meshLoader.loadObjMesh(meshPath, verts, indices);
-
     _appendGeometry(mesh, verts, indices);
 }
 

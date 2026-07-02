@@ -14,54 +14,82 @@
 
 @implementation sceneTests
 
-- (void)testMeshInstancesDontReuploadMesh {
+// Instancing: register a mesh once, place it many times. Mirrors the original
+// addMeshInstance tests, now on the addMesh/addInstance split (loadObjScene is the
+// multi-material file front-end; addMeshFromData is addMesh + one addInstance).
+
+- (void)testInstancingReusesMeshUpload {
     MockGeometryPool pool;
     Scene scene(pool);
-
-    std::string path = "test_mesh.obj";
     simd::float4x4 I = matrix_identity_float4x4;
-    scene.addMeshInstance(path, I, nullptr); // device is nullptr, mock ignores it
-    scene.addMeshInstance(path, I, nullptr);
+
+    std::vector<Vertex>   verts(3);
+    std::vector<uint32_t> idx = {0, 1, 2};
+
+    uint32_t mesh = scene.addMesh(verts, idx, nullptr);   // uploaded once
+    scene.addInstance(mesh, I, 0);
+    scene.addInstance(mesh, I, 0);
 
     XCTAssertEqual(scene.numMeshes(), 1);
     XCTAssertEqual(scene.numMeshInstances(), 2);
-    XCTAssertEqual(pool._uploadCount, 1); // key assertion: mesh only uploaded once
+    XCTAssertEqual(pool._uploadCount, 1);                 // key: one upload, two instances
 
-    const Mesh& mesh = scene.mesh(0);
-    XCTAssertEqual(mesh.meshInstanceIndexes.size(), 2);
-    XCTAssertEqual(mesh.meshInstanceIndexes[0], 0);
-    XCTAssertEqual(mesh.meshInstanceIndexes[1], 1);
+    const Mesh& m = scene.mesh(0);
+    XCTAssertEqual(m.meshInstanceIndexes.size(), 2);
+    XCTAssertEqual(m.meshInstanceIndexes[0], 0);
+    XCTAssertEqual(m.meshInstanceIndexes[1], 1);
 }
 
-- (void)testMeshInstanceIndexesAreCorrect {
+- (void)testInstanceIndexesAcrossMeshes {
     MockGeometryPool pool;
     Scene scene(pool);
-
-    std::string meshA = "a.obj";
-    std::string meshB = "b.obj";
     simd::float4x4 I = matrix_identity_float4x4;
 
-    scene.addMeshInstance(meshA, I, nullptr);
-    scene.addMeshInstance(meshB, I, nullptr);
-    scene.addMeshInstance(meshA, I, nullptr);
+    std::vector<Vertex>   verts(3);
+    std::vector<uint32_t> idx = {0, 1, 2};
+
+    uint32_t meshA = scene.addMesh(verts, idx, nullptr);
+    uint32_t meshB = scene.addMesh(verts, idx, nullptr);
+
+    scene.addInstance(meshA, I, 0);
+    scene.addInstance(meshB, I, 0);
+    scene.addInstance(meshA, I, 0);
 
     XCTAssertEqual(scene.numMeshes(), 2);
     XCTAssertEqual(scene.numMeshInstances(), 3);
-    XCTAssertEqual(pool._uploadCount, 2); // a.obj and b.obj, a.obj not re-uploaded
+    XCTAssertEqual(pool._uploadCount, 2);                 // meshA + meshB, each uploaded once
 
-    XCTAssertEqual(scene.instance(0).meshIndex, 0);
-    XCTAssertEqual(scene.instance(1).meshIndex, 1);
-    XCTAssertEqual(scene.instance(2).meshIndex, 0);
+    XCTAssertEqual(scene.instance(0).meshIndex, meshA);
+    XCTAssertEqual(scene.instance(1).meshIndex, meshB);
+    XCTAssertEqual(scene.instance(2).meshIndex, meshA);
 
-    const Mesh& mesh0 = scene.mesh(0);
-    const Mesh& mesh1 = scene.mesh(1);
+    XCTAssertEqual(scene.mesh(meshA).meshInstanceIndexes.size(), 2);
+    XCTAssertEqual(scene.mesh(meshB).meshInstanceIndexes.size(), 1);
+    XCTAssertEqual(scene.mesh(meshA).meshInstanceIndexes[0], 0);
+    XCTAssertEqual(scene.mesh(meshA).meshInstanceIndexes[1], 2);
+    XCTAssertEqual(scene.mesh(meshB).meshInstanceIndexes[0], 1);
+}
 
-    XCTAssertEqual(mesh0.meshInstanceIndexes.size(), 2);
-    XCTAssertEqual(mesh1.meshInstanceIndexes.size(), 1);
+- (void)testAddLightStampsTwoWayLink {
+    MockGeometryPool pool;
+    Scene scene(pool);
+    simd::float4x4 I = matrix_identity_float4x4;
 
-    XCTAssertEqual(mesh0.meshInstanceIndexes[0], 0);
-    XCTAssertEqual(mesh0.meshInstanceIndexes[1], 2);
-    XCTAssertEqual(mesh1.meshInstanceIndexes[0], 1);
+    std::vector<Vertex>   verts(3);
+    std::vector<uint32_t> idx = {0, 1, 2};
+    uint32_t inst = scene.addMeshFromData(verts, idx, I, 0, nullptr);
+
+    XCTAssertEqual(scene.instance(inst).lightID, -1);               // not emissive yet
+
+    Light L{};
+    L.type     = LIGHT_AREA;
+    L.radiance = {5.0f, 5.0f, 5.0f};
+    L.twoSided = 0;
+    uint32_t lightID = scene.addLight(L, inst);
+
+    XCTAssertEqual(scene.numLights(), 1u);
+    XCTAssertEqual(scene.instance(inst).lightID, (int32_t)lightID); // instance -> light
+    XCTAssertEqual(scene.lights()[lightID].instanceID, inst);       // light -> instance
 }
 
 @end

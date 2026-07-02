@@ -154,10 +154,9 @@ void RasterBackend::onMouseDrag(float dx, float dy) {
  
  meshes are indexed in the scene containing an index, vertex offset, index offset in the pool buffers
  
- So we need to add meshes by calling void addMeshDirect(Mesh& mesh,
- const std::vector<Vertex>& verts,
- const std::vector<uint32_t>& indices,
- MTL::Device* device); from scene (fills the buffers after we do for all)
+ So we add scene objects by calling Scene::addMeshFromData(verts, indices,
+ transform, materialID, device) — or Scene::loadObjScene() for an OBJ file —
+ then geometryPool().finalize() fills the mega buffers once all are staged.
  
  
  then bare minimum is to actually render is set the renderencoder and what else?

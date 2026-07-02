@@ -18,23 +18,21 @@ class Scene {
 public:
     Scene(IGeometryPool& pool);
     ~Scene() { if (_materialBuffer) _materialBuffer->release(); }
-    void loadMesh(const std::string& path, uint32_t materialID,
-                     const simd::float4x4& transform, MTL::Device* device);
-    void addMeshDirect(Mesh& mesh,
-                       const std::vector<Vertex>& verts,
-                       const std::vector<uint32_t>& indices,
-                       MTL::Device* device);
-    
-    // First call adds mesh and mesh instance. Subsequent calls with same filepath only do instance.
-    // Returns false (and adds nothing) if the mesh fails to load.
-    bool addMeshInstance(const std::string& meshfilepath,
-                         const simd::float4x4& transform,
-                         MTL::Device* device,
-                         uint32_t materialID = 0);
 
-    // Raw in-memory geometry -> one mesh + one instance (used by the OBJ submesh
-    // loader for multi-material files). Returns the new instance index. Call
-    // before geometryPool().finalize().
+    // --- geometry & instancing ------------------------------------------------
+    // Register geometry in the pool once; returns a mesh index. Instance it any
+    // number of times with addInstance — one upload, many transforms.
+    uint32_t addMesh(const std::vector<Vertex>& verts,
+                     const std::vector<uint32_t>& indices,
+                     MTL::Device* device);
+
+    // Place an instance of an already-registered mesh. Returns the instance index.
+    uint32_t addInstance(uint32_t meshIndex,
+                         const simd::float4x4& transform,
+                         uint32_t materialID);
+
+    // Convenience: addMesh + a single addInstance (one-off geometry, e.g. each
+    // OBJ submesh). Returns the new instance index. Call before finalize().
     uint32_t addMeshFromData(const std::vector<Vertex>& verts,
                              const std::vector<uint32_t>& indices,
                              const simd::float4x4& transform,
@@ -75,7 +73,6 @@ private:
     std::vector<Mesh>               _meshes;
     std::vector<MeshInstance>       _meshInstances;
     std::vector<Material>           _materials;
-    std::unordered_map<std::string, int> _fileToMeshIndex;
 
     // materials
     IGeometryPool&                  _pool;

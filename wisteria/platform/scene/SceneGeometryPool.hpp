@@ -8,14 +8,13 @@
 #include <Metal/Metal.hpp>
 #include "engine/scene/Mesh.hpp"
 #include "engine/scene/Core.hpp" // 6429
-#include "engine/geometry/MeshLoader.hpp"
 #include "IGeometryPool.hpp"
 
 /*
  SceneGeometryPool consolidates all scene geometry into two megabuffers
- (one for vertices, one for indices). Meshes uploaded via uploadMesh/
- uploadMeshFile have their geometry appended to CPU-side staging vectors;
- indices are rebased to the mega vertex buffer's space at append time.
+ (one for vertices, one for indices). Meshes uploaded via uploadMesh have
+ their geometry appended to CPU-side staging vectors; indices are rebased
+ to the mega vertex buffer's space at append time.
 
  GPU buffers are (re)built lazily from the staging vectors on the next
  vertexBuffer()/indexBuffer() call after any upload. Call finalize() to
@@ -34,8 +33,6 @@ public:
                     const std::vector<Vertex>& verts,
                     const std::vector<uint32_t>& indices,
                     MTL::Device* device) override;
-
-    void uploadMeshFile(Mesh& mesh, const std::string& meshPath, MTL::Device* device) override;
 
     std::pair<Vec4, Vec4> calculateBounds(const std::vector<Vertex>& verts);
 
@@ -63,5 +60,4 @@ private:
     bool         _dirty        = false;
 
     MTL::Device* _device       = nullptr; // cached from first upload
-    MeshLoader   _meshLoader;
 };

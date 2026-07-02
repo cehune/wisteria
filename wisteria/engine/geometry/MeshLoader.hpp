@@ -21,21 +21,18 @@ struct ObjSubmesh {
     std::vector<uint32_t> indices;
 };
 
-class MeshLoader {
-public:
-    void loadObjMesh(const std::string& meshPath,
-                     std::vector<Vertex>& vertices,
-                     std::vector<uint32_t>& indices);
-    //TODO: GLTF LOADING!!!!
-    
-    void getMeshNormals(std::vector<Vertex>& vertices,
-                        std::vector<uint32_t>& indices);
+namespace Geometry {
+    // High-level: The only function the Scene needs to call
     void loadObjSubmeshes(const std::string& meshPath, std::vector<ObjSubmesh>& out);
-private:
-    void processShape(const rapidobj::Shape& shape, const rapidobj::Result& result,
-                      std::vector<ObjSubmesh>& out, std::unordered_map<int, size_t>& matToSub);
-    Vertex extractVertex(const rapidobj::Index& ix, const rapidobj::Result& res);
-    ObjSubmesh& getOrCreateSubmesh(int matID, const rapidobj::Result& result,
-                                               std::vector<ObjSubmesh>& out,
-                                               std::unordered_map<int, size_t>& matToSub);
-};
+
+    // Internal utilities (don't expose these to the Scene)
+    namespace Internal {
+        void processShape(const rapidobj::Shape& shape, const rapidobj::Result& result,
+                             std::vector<ObjSubmesh>& out, std::unordered_map<int, size_t>& matToSub);
+        void getMeshNormals(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices);
+        ObjSubmesh& getOrCreateSubmesh(int matID, const rapidobj::Result& result,
+                                       std::vector<ObjSubmesh>& out,
+                                       std::unordered_map<int, size_t>& matToSub);
+        Vertex extractVertex(const rapidobj::Index& ix, const rapidobj::Result& res);
+    }
+}
