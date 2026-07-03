@@ -14,14 +14,28 @@
 #include "../common/bxdf/Lambertian.h"
 #include "../common/sampler/IndependentSampler.h"
 #include "../common/Light.h"
+#include "../../../engine/gpu/Sampling.h"
 
 using namespace metal;
 using namespace raytracing;
+
+// Direct-lighting strategy toggle — flip to validate one against another.
+// INTEGRATOR_MIS | INTEGRATOR_NEE | INTEGRATOR_BSDF
+constant int kIntegratorMode = INTEGRATOR_MIS;
 
 // Constant/gradient environment light — the only emitter for now.
 // Flatten to a constant Spectrum(x) for the white-furnace test.
 inline Spectrum env_radiance(float3 d) {
     return Spectrum(0.0f);   // enclosed Cornell box: no environment light
+}
+
+// linear HDR -> sRGB for the 8-bit display target. Accumulation stays linear;
+// only the display copy is encoded. Clamps to [0,1] (bright emitters clip to white).
+inline float3 linear_to_srgb(float3 c) {
+    c = clamp(c, 0.0f, 1.0f);
+    float3 lo = c * 12.92f;
+    float3 hi = 1.055f * pow(c, 1.0f / 2.4f) - 0.055f;
+    return select(lo, hi, c > 0.0031308f);
 }
 
 kernel void raytrace_kernel(
@@ -66,6 +80,11 @@ kernel void raytrace_kernel(
     Spectrum L          = Spectrum(0.0f);
     intersector<triangle_data, instancing> isect;
 
+    // MIS carry-state across bounces
+    float  bsdfPdf        = 1.0f;        // solid-angle pdf of the bsdf sample that made ray r
+    bool   specularBounce = true;        // camera ray: NEE can't have sampled it
+    float3 prevP          = cam.origin;  // vertex that shot r (ref point for emitter-hit pdf)
+
     for (uint depth = 0; depth < MAX_DEPTH; ++depth) {
         auto hit = isect.intersect(r, accel);
         if (hit.type != intersection_type::triangle) {
@@ -90,15 +109,23 @@ kernel void raytrace_kernel(
         float3 hitP = r.origin + r.direction * hit.distance;
         float3 woW  = -r.direction;
 
-        // emitter hit: only count on primary rays — NEE handles direct lighting at deeper bounces
-        if (inst.lightID >= 0 && depth == 0) {
+        // emitter hit: count at every depth, MIS-weighted against the NEE that targeted
+        // this light from the previous vertex (camera / post-specular = full weight)
+        if (inst.lightID >= 0) {
             float3 pA = (o2w * vA.position).xyz;
             float3 pB = (o2w * vB.position).xyz;
             float3 pC = (o2w * vC.position).xyz;
             float3 gN = normalize(cross(pB - pA, pC - pA));
             Light  lt = lights[inst.lightID];
-            if (lt.twoSided != 0 || dot(gN, woW) > 0.0f)
-                L += throughput * lt.radiance;
+            if (lt.twoSided != 0 || dot(gN, woW) > 0.0f) {
+                float w = 1.0f;
+                if (!specularBounce) {
+                    float pLight = light_pdf_direction(inst, prevP, hitP, hit.primitive_id,
+                                                       vertices, indices, numLights);
+                    w = misWeight(bsdfPdf, pLight, STRATEGY_BSDF, kIntegratorMode);
+                }
+                L += throughput * lt.radiance * w;
+            }
         }
 
         if (dot(ns, woW) < 0.0f) ns = -ns;              // face the viewer (two-sided)
@@ -129,10 +156,12 @@ kernel void raytrace_kernel(
                 auto shadowHit = shadowIsect.intersect(shadowRay, accel);
 
                 if (shadowHit.type == intersection_type::none) {
-                    float3   wiL  = frame.toLocal(ls.wi);
-                    Spectrum f    = lambertian_eval(albedo, wo, wiL);
-                    float    cosL = abs(cosTheta(wiL));
-                    L += throughput * f * ls.Li * cosL / ls.pdf;
+                    float3   wiL   = frame.toLocal(ls.wi);
+                    Spectrum f     = lambertian_eval(albedo, wo, wiL);
+                    float    cosL  = abs(cosTheta(wiL));
+                    float    pBsdf = lambertian_pdf(wo, wiL);        // bsdf pdf for the light direction
+                    float    w     = misWeight(ls.pdf, pBsdf, STRATEGY_LIGHT, kIntegratorMode);
+                    L += throughput * f * ls.Li * cosL / ls.pdf * w;
                 }
             }
         }
@@ -143,6 +172,11 @@ kernel void raytrace_kernel(
 
         // throughput *= f * cos / pdf   ( == albedo for a Lambertian )
         throughput *= bs.f * abs(cosTheta(bs.wi)) / bs.pdf;
+
+        // carry MIS state for the next iteration's emitter-hit weight
+        bsdfPdf        = bs.pdf;   // solid-angle pdf that generated the next ray
+        specularBounce = false;    // Lambertian is non-delta; set true for mirror/glass later
+        prevP          = hitP;     // ref point for the next emitter-hit pdf
 
         // continuation ray, nudged off the surface to avoid self-intersection
         r.origin       = hitP + ns * 1e-3f;
@@ -155,6 +189,6 @@ kernel void raytrace_kernel(
     float4 color = float4(L, 1.0f);
     float4 prev  = accumTex.read(gid);
     float4 accum = (prev * float(sampleCount) + color) / float(sampleCount + 1);
-    accumTex.write(accum, gid);
-    outTex.write(accum, gid);
+    accumTex.write(accum, gid);                        // linear HDR — keep accumulation linear
+    outTex.write(float4(linear_to_srgb(accum.rgb), 1.0f), gid);   // encoded copy for display
 }
