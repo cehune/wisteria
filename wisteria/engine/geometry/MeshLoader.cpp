@@ -26,7 +26,7 @@ void Geometry::Internal::getMeshNormals(std::vector<Vertex>& vertices,
     }
 }
 
-void Geometry::Internal::loadObjSubmeshes(const std::string& meshPath, std::vector<ObjSubmesh>& out) {
+void Geometry::loadObjSubmeshes(const std::string& meshPath, std::vector<ObjSubmesh>& out) {
     if (meshPath.empty()) throw std::runtime_error("bad mesh path");
 
     rapidobj::Result result = rapidobj::ParseFile(meshPath);
@@ -36,13 +36,13 @@ void Geometry::Internal::loadObjSubmeshes(const std::string& meshPath, std::vect
     std::unordered_map<int, size_t> matToSubIndex;
 
     for (const auto& shape : result.shapes) {
-        processShape(shape, result, out, matToSubIndex);
+        Internal::processShape(shape, result, out, matToSubIndex);
     }
 
     // Post-processing
     if (result.attributes.normals.empty()) {
         for (auto& submesh : out) {
-            getMeshNormals(submesh.vertices, submesh.indices);
+            Internal::getMeshNormals(submesh.vertices, submesh.indices);
         }
     }
 }

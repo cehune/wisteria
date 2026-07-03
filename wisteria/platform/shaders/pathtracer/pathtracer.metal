@@ -13,6 +13,7 @@
 #include "../common/Frame.h"
 #include "../common/bxdf/Lambertian.h"
 #include "../common/sampler/IndependentSampler.h"
+#include "../common/Light.h"
 
 using namespace metal;
 using namespace raytracing;
@@ -89,12 +90,12 @@ kernel void raytrace_kernel(
         float3 hitP = r.origin + r.direction * hit.distance;
         float3 woW  = -r.direction;
 
-        // --- emitter hit (naive: every front-facing hit counts; NEE will gate this) ---
-        if (inst.lightID >= 0) {
+        // emitter hit: only count on primary rays — NEE handles direct lighting at deeper bounces
+        if (inst.lightID >= 0 && depth == 0) {
             float3 pA = (o2w * vA.position).xyz;
             float3 pB = (o2w * vB.position).xyz;
             float3 pC = (o2w * vC.position).xyz;
-            float3 gN = normalize(cross(pB - pA, pC - pA));   // geometric normal (matches NEE later)
+            float3 gN = normalize(cross(pB - pA, pC - pA));
             Light  lt = lights[inst.lightID];
             if (lt.twoSided != 0 || dot(gN, woW) > 0.0f)
                 L += throughput * lt.radiance;
@@ -105,6 +106,36 @@ kernel void raytrace_kernel(
         // shading frame + local outgoing direction
         Frame  frame = Frame::fromNormal(ns);
         float3 wo    = frame.toLocal(woW);
+
+        // --- NEE: sample one light, add direct contribution if unoccluded ---
+        if (numLights > 0) {
+            uint         li    = min(uint(next_1d(rng) * float(numLights)), numLights - 1u);
+            Light        lt    = lights[li];
+            InstanceData lInst = instanceData[lt.instanceID];
+
+            LightSample ls = light_sample_Li(lt, lInst, numLights, hitP,
+                                             next_1d(rng), next_2d(rng),
+                                             vertices, indices);
+
+            if (ls.pdf > 0.0f && !is_black(ls.Li)) {
+                ray shadowRay;
+                shadowRay.origin       = hitP + ns * 1e-3f;
+                shadowRay.direction    = ls.wi;
+                shadowRay.min_distance = 1e-4f;
+                shadowRay.max_distance = ls.dist - 1e-3f;
+
+                intersector<triangle_data, instancing> shadowIsect;
+                shadowIsect.accept_any_intersection(true);
+                auto shadowHit = shadowIsect.intersect(shadowRay, accel);
+
+                if (shadowHit.type == intersection_type::none) {
+                    float3   wiL  = frame.toLocal(ls.wi);
+                    Spectrum f    = lambertian_eval(albedo, wo, wiL);
+                    float    cosL = abs(cosTheta(wiL));
+                    L += throughput * f * ls.Li * cosL / ls.pdf;
+                }
+            }
+        }
 
         // sample the BSDF for the next bounce
         BSDFSample bs = lambertian_sample(albedo, wo, next_2d(rng));

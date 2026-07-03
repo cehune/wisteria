@@ -38,8 +38,9 @@
 struct InstanceData {
     WST_UINT     indexOffset;
     WST_UINT     materialID;
-    WST_INT      lightID;     // -1 = not an emitter
-    WST_FLOAT4X4 transform;   // object -> world; upper 3x3 used for normals
+    WST_INT      lightID;      // -1 = not an emitter
+    WST_UINT     indexCount;   // # indices in this mesh's slice (triangles = indexCount / 3)
+    WST_FLOAT4X4 transform;    // object -> world; upper 3x3 used for normals
 }; // sizeof = 80
 
 struct Material {
@@ -71,16 +72,21 @@ struct Vertex {
     WST_FLOAT4 color;
 };
 
-enum LightType : WST_UINT { LIGHT_AREA = 0, LIGHT_ENVIRONMENT = 1 };
+enum LightType : WST_UINT {
+    LIGHT_AREA = 0,
+    LIGHT_ENVIRONMENT = 1,
+    LIGHT_POINT = 2,
+    LIGHT_DIRECTIONAL = 3,
+};
 
-// Emitter description. Area light samples its own geometry via instanceID ->
-// InstanceData (triangle range + transform), so it only carries Le here.
 struct Light {
-    WST_FLOAT3 radiance;    // Le
+    WST_FLOAT3 radiance;    // Le (area/env) or intensity (point/dir)
     WST_UINT   type;        // LightType
     WST_UINT   instanceID;  // AREA: emissive geometry this light owns
     WST_UINT   twoSided;    // AREA: 0 = emit only along +geometric-normal face
-}; // sizeof = 32
+    WST_UINT   flags;       // isDelta, isInfinite
+    WST_FLOAT3 posOrDir;    // POINT: world position  DIRECTIONAL: direction  ENV: unused
+}; // sizeof = 48
 
 #undef WST_INT
 #undef WST_UINT

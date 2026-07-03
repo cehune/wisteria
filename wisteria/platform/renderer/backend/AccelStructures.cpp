@@ -13,7 +13,7 @@ static_assert(sizeof(InstanceData)         == 80, "InstanceData layout changed")
 static_assert(sizeof(CameraUniformsPT)     == 80, "CameraUniformsPT layout changed");
 static_assert(sizeof(CameraUniformsRaster) == 64, "CameraUniformsRaster layout changed");
 static_assert(sizeof(Vertex)               == 80, "Vertex layout changed");
-static_assert(sizeof(Light)                == 32, "Light layout changed");
+static_assert(sizeof(Light)                == 48, "Light layout changed");
 
 AccelStructures::~AccelStructures() {
     for (auto* b : _blases) if (b) b->release();
@@ -101,6 +101,7 @@ void AccelStructures::_buildTLAS(Scene& scene) {
 
         // shading payload: instance_id -> this mesh's index range + material + xform
         instData[i].indexOffset = inst.indexOffset;
+        instData[i].indexCount  = scene.meshes()[inst.meshIndex].numTriangles * 3;
         instData[i].materialID  = inst.materialID;
         instData[i].transform   = inst.transform;
         instData[i].lightID     = inst.lightID;   // -1 unless addLight() stamped it
