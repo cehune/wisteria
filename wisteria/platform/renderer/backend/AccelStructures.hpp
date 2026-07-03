@@ -10,7 +10,7 @@
 #include <vector>
 #include "platform/scene/Scene.hpp"
 #include "platform/geometry/GeometryUtils.hpp"
-#include "engine/gpu/SharedTypes.h"   // struct InstanceData (shared CPU/GPU ABI)
+#include "engine/shading/common/SharedTypes.h"   // struct InstanceData (shared CPU/GPU ABI)
 
 // Owns the path tracer's Metal BVH: one BLAS per unique mesh (built from the
 // mega-buffer index ranges) and one TLAS over all MeshInstances. build() is a

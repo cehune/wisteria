@@ -4,7 +4,7 @@
 //
 //  Created by celine on 2026-07-02.
 //
-//  The lot for MIS!!!
+//  The lot for MIS!!!  Pure float logic — no vector types, host-testable.
 
 #pragma once
 

@@ -7,7 +7,7 @@
 
 #pragma once
 #include <metal_stdlib>
-#include "../../../engine/gpu/SharedTypes.h"
+#include "../../../engine/shading/common/SharedTypes.h"
 
 using namespace metal;
 

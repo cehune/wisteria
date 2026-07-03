@@ -9,7 +9,7 @@
 
 #import <XCTest/XCTest.h>
 #include <simd/simd.h>
-#include "engine/gpu/LightGeometry.h"
+#include "engine/shading/lights/LightGeometry.h"
 
 static inline simd_float3 f3(float x, float y, float z) { return simd_make_float3(x, y, z); }
 

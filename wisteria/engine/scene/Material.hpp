@@ -7,7 +7,7 @@
 
 #pragma once
 #include <cstdint>
-#include "engine/gpu/SharedTypes.h"   // struct Material (shared CPU/GPU ABI)
+#include "engine/shading/common/SharedTypes.h"   // struct Material (shared CPU/GPU ABI)
 
 enum MaterialType : uint32_t { MATERIAL_LAMBERTIAN = 0 };
 

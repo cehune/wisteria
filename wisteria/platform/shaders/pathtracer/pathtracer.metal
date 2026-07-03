@@ -8,13 +8,13 @@
 #include <metal_stdlib>
 #include <metal_raytracing>
 #include "../common/Types.h"
-#include "../../../engine/gpu/SharedTypes.h"
-#include "../common/Spectrum.h"
-#include "../common/Frame.h"
-#include "../common/bxdf/Lambertian.h"
+#include "../../../engine/shading/common/SharedTypes.h"
+#include "../../../engine/shading/common/Spectrum.h"
+#include "../../../engine/shading/common/Frame.h"
+#include "../../../engine/shading/bxdf/Lambertian.h"
 #include "../common/sampler/IndependentSampler.h"
 #include "../common/Light.h"
-#include "../../../engine/gpu/Sampling.h"
+#include "../../../engine/shading/common/Sampling.h"
 
 using namespace metal;
 using namespace raytracing;
@@ -120,8 +120,10 @@ kernel void raytrace_kernel(
             if (lt.twoSided != 0 || dot(gN, woW) > 0.0f) {
                 float w = 1.0f;
                 if (!specularBounce) {
-                    float pLight = light_pdf_direction(inst, prevP, hitP, hit.primitive_id,
-                                                       vertices, indices, numLights);
+                    // pLight: density NEE would have used for this hit (same triangle we
+                    // already fetched for the facing test). Mirrors light_sample_Li's measure.
+                    uint  numTri = inst.indexCount / 3u;
+                    float pLight = area_pdf_direction(pA, pB, pC, prevP, hitP, float(numTri)) / float(numLights);
                     w = misWeight(bsdfPdf, pLight, STRATEGY_BSDF, kIntegratorMode);
                 }
                 L += throughput * lt.radiance * w;

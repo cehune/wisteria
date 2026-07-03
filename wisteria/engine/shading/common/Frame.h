@@ -6,15 +6,14 @@
 //
 
 #pragma once
-#include <metal_stdlib>
-
-using namespace metal;
+#include "Math.h"
+using namespace wst;
 
 struct Frame {
     float3 s; // tangent (x)
     float3 t; // bitangent (y)
     float3 n; // shading normal (z)
-    
+
     static Frame fromNormalTangent(float3 normal, float3 tangent) {
         Frame f;
         f.n = normalize(normal);
@@ -31,7 +30,7 @@ struct Frame {
         f.t = float3(b, sign + f.n.y * f.n.y * a, -f.n.y);
         return f;
     }
-    
+
     // Transforms a vector from world space to local space
     float3 toLocal(float3 v) const {
         return float3(dot(v, s), dot(v, t), dot(v, n));

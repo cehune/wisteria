@@ -7,8 +7,8 @@
 // Shared sampling warps: map uniform [0,1)^n samples onto useful domains.
 
 #pragma once
-#include <metal_stdlib>
-using namespace metal;
+#include "Math.h"
+using namespace wst;
 
 
 /*
@@ -30,10 +30,10 @@ inline float2 square_to_uniform_disk(float2 u) {
      */
     if (abs(o.x) > abs(o.y)) {
         r     = o.x;
-        theta = (M_PI_F / 4.0f) * (o.y / o.x);
+        theta = (Pi / 4.0f) * (o.y / o.x);
     } else {
         r     = o.y;
-        theta = (M_PI_F / 2.0f) - (M_PI_F / 4.0f) * (o.x / o.y);
+        theta = (Pi / 2.0f) - (Pi / 4.0f) * (o.x / o.y);
     }
     return r * float2(cos(theta), sin(theta));
 }
@@ -53,5 +53,5 @@ inline float3 square_to_cosine_hemisphere(float2 u) {
 
 // pdf of the direction above, in solid angle: cos(theta) / pi.
 inline float square_to_cosine_hemisphere_pdf(float cosTheta) {
-    return cosTheta * M_1_PI_F;
+    return cosTheta * InvPi;
 }

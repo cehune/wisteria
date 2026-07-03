@@ -7,7 +7,7 @@
 //
 
 #import <XCTest/XCTest.h>
-#include "engine/gpu/Sampling.h"
+#include "engine/shading/common/Sampling.h"
 
 @interface samplingTests : XCTestCase
 @end

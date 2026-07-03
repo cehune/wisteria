@@ -7,34 +7,13 @@
 // The CPU<->GPU ABI. Compiled by BOTH C++ and Metal, so structs that live in a
 // GPU buffer have exactly ONE definition and cannot drift. Anything that uses
 // MSL-only constructs (thread, [[attributes]], device functions) does NOT belong
-// here. that stays in common/ (GPU-only).
+// here — that stays in platform/shaders (GPU-only).
+//
+// Scalar/vector types come from the shared `wst` vocabulary (Math.h).
 //
 
 #pragma once
-
-#ifdef __METAL_VERSION__
-    #include <metal_stdlib>
-    using namespace metal;   // shaders including this may use metal vector types unqualified
-    namespace wst {
-        using int_t    = int;
-        using uint_t   = uint;
-        using float2   = metal::float2;
-        using float3   = metal::float3;
-        using float4   = metal::float4;
-        using float4x4 = metal::float4x4;
-    }
-#else
-    #include <simd/simd.h>
-    #include <cstdint>
-    namespace wst {
-        using int_t    = int32_t;
-        using uint_t   = uint32_t;
-        using float2   = simd_float2;
-        using float3   = simd_float3;
-        using float4   = simd_float4;
-        using float4x4 = simd_float4x4;
-    }
-#endif
+#include "Math.h"
 
 // Per-instance shading payload: AccelStructures builds this buffer; the kernel
 // reads it by intersection instance_id to recover geometry range + material + light.
