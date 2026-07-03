@@ -9,6 +9,7 @@
 #include <metal_stdlib>
 #include "../../../engine/gpu/SharedTypes.h"
 #include "Spectrum.h"
+#include "../../../engine/gpu/LightGeometry.h"
 
 using namespace metal;
 
@@ -67,13 +68,10 @@ inline LightSample light_sample_area(Light light, InstanceData inst,
     float3 B = light_fetch_world_pos(vertices, indices, base, 1, inst.transform);
     float3 C = light_fetch_world_pos(vertices, indices, base, 2, inst.transform);
 
-    float3 normal = cross(B-A, C-A);
-    // ||a cross b|| = ||a|| ||b|| sinθ = area of parallelogram, then divide by 2 for triangle
-    float triangleArea = length(normal) * 0.5f; 
-    normal = normalize(normal);
-    
-    // use sqrt warp with cdfs
-    // maps two numbers of uniform [0,1) to a uniform u1 + u2 <= 1
+    // unit geometric normal, used for the emit-side facing test
+    float3 normal = normalize(cross(B - A, C - A));
+
+    // sqrt warp: two uniforms -> a point with u1 + u2 <= 1 (uniform over the triangle)
     float u1 = sqrt(baryCentricCDF.x);
     float u2 = u1 * baryCentricCDF.y;
     float3 lightPoint  = (1.0f - u1 - u2) * A + u1 * B + u2 * C;
@@ -82,9 +80,9 @@ inline LightSample light_sample_area(Light light, InstanceData inst,
     float  dist    = length(toLight);
     float3 wi      = toLight / dist;
 
-    // solid-angle pdf: p_A = 1/(N*triArea) TODO: use area weighted later
-    float cosLight = abs(dot(wi, normal));
-    float pdf      = (dist * dist) / (float(numTriangles) * triangleArea * max(cosLight, 1e-4f));
+    // solid-angle pdf — single definition shared with the MIS pdf + host tests.
+    // Excludes 1/numLights; light_sample_Li applies that below.
+    float pdf = area_pdf_direction(A, B, C, surfacePoint, lightPoint, float(numTriangles));
 
     bool facing = (light.twoSided != 0u) || (dot(-wi, normal) > 0.0f);
 
@@ -126,8 +124,20 @@ inline LightSample light_sample_Li(Light L, InstanceData inst, uint numLights,
     return s;
 }
 
-inline float light_pdf_Li(Light L, float3 surfacePoint, float3 wi)
+/* 
+MIS pdf (Mitsuba: Emitter::pdf_direction): the solid-angle probability, at surfacePoint,
+that NEE would have sampled the point `lightPoint` on triangle `primId` of this
+area light. Must equal light_sample_Li's returned pdf, so it INCLUDES the 1/numLights
+selection factor (area_pdf_direction gives per-light geometry; this divides by numLights).
+*/
+inline float light_pdf_direction(InstanceData inst, float3 surfacePoint, float3 lightPoint, 
+                                 uint primId, device const Vertex* vertices, 
+                                 device const uint* indices, uint numLights)
 {
-    // TODO: need for MIS
-    return 0.0f;
+    uint numTri = inst.indexCount / 3u;
+    uint base   = inst.indexOffset + primId * 3u;
+    float3 A = (inst.transform * vertices[indices[base + 0]].position).xyz;
+    float3 B = (inst.transform * vertices[indices[base + 1]].position).xyz;
+    float3 C = (inst.transform * vertices[indices[base + 2]].position).xyz;
+    return area_pdf_direction(A, B, C, surfacePoint, lightPoint, float(numTri)) / float(numLights);
 }

@@ -88,9 +88,3 @@ struct Light {
     WST_FLOAT3 posOrDir;    // POINT: world position  DIRECTIONAL: direction  ENV: unused
 }; // sizeof = 48
 
-#undef WST_INT
-#undef WST_UINT
-#undef WST_FLOAT2
-#undef WST_FLOAT3
-#undef WST_FLOAT4
-#undef WST_FLOAT4X4
