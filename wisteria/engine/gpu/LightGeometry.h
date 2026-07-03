@@ -25,13 +25,13 @@ solid angle pdf of choosing a point lightPoint on a triangle (A, B, C)
 equiv to Mitsuba's Shape::pdf_direction
 TODO: switch to hemisphere non uniform sampling for area lights
 */
-inline float area_pdf_direction(WST_FLOAT3 A, WST_FLOAT3 B, WST_FLOAT3 C,
-                                WST_FLOAT3 surfacePoint, WST_FLOAT3 lightPoint, float numTri)
+inline float area_pdf_direction(wst::float3 A, wst::float3 B, wst::float3 C,
+                                wst::float3 surfacePoint, wst::float3 lightPoint, float numTri)
 {
     // n = (b-a) x (c-a), ||n|| = 2 * triangle area
-    WST_FLOAT3 e1 = B - A;
-    WST_FLOAT3 e2 = C - A;
-    WST_FLOAT3 n;
+    wst::float3 e1 = B - A;
+    wst::float3 e2 = C - A;
+    wst::float3 n;
     n.x = e1.y * e2.z - e1.z * e2.y;
     n.y = e1.z * e2.x - e1.x * e2.z;
     n.z = e1.x * e2.y - e1.y * e2.x;
@@ -40,7 +40,7 @@ inline float area_pdf_direction(WST_FLOAT3 A, WST_FLOAT3 B, WST_FLOAT3 C,
     if (twoArea <= 0.0f) return 0.0f;           // degenerate triangle
     float area = 0.5f * twoArea;
 
-    WST_FLOAT3 D;
+    wst::float3 D;
     D.x = lightPoint.x - surfacePoint.x;
     D.y = lightPoint.y - surfacePoint.y;
     D.z = lightPoint.z - surfacePoint.z;
