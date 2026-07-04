@@ -6,7 +6,7 @@
 //
 
 #pragma once
-#include "../common/Math.h"
+#include "../common/Common.h"
 #include "../common/Spectrum.h"
 #include "../common/Frame.h"
 #include "../common/Warp.h"

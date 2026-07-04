@@ -6,7 +6,7 @@
 //
 
 #pragma once
-#include "../common/Math.h"
+#include "../common/Common.h"
 using namespace wst;
 
 struct BSDFSample {

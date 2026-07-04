@@ -9,11 +9,11 @@
 // MSL-only constructs (thread, [[attributes]], device functions) does NOT belong
 // here — that stays in platform/shaders (GPU-only).
 //
-// Scalar/vector types come from the shared `wst` vocabulary (Math.h).
+// Scalar/vector types come from the shared `wst` vocabulary (Common.h).
 //
 
 #pragma once
-#include "Math.h"
+#include "Common.h"
 
 // Per-instance shading payload: AccelStructures builds this buffer; the kernel
 // reads it by intersection instance_id to recover geometry range + material + light.
@@ -25,9 +25,15 @@ struct InstanceData {
     wst::float4x4 transform;    // object -> world; upper 3x3 used for normals
 }; // sizeof = 80
 
+enum MaterialType : wst::uint_t {
+    MATERIAL_LAMBERTIAN = 0,
+    MATERIAL_CONDUCTOR  = 1,
+};
+
 struct Material {
-    wst::uint_t type;          // 0 = Lambertian
-    wst::float3 albedo;
+    wst::uint_t type;          // MaterialType
+    wst::float3 albedo;        // Lambertian: diffuse reflectance;  Conductor: F0 (specular colour)
+    float       roughness;     // Conductor: perceptual roughness (alpha = roughness^2)
 };
 
 struct CameraUniformsPT {

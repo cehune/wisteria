@@ -6,7 +6,7 @@
 //
 
 #pragma once
-#include "Math.h"
+#include "Common.h"
 using namespace wst;
 
 struct Frame {

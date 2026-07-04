@@ -6,10 +6,6 @@
 //
 
 
-
-
-
-
 #import <AppKit/AppKit.h>
 #import "platform/core/AppDelegate.h"
 int main(int argc, const char * argv[]) {

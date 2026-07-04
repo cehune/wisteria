@@ -10,7 +10,7 @@
 //
 
 #pragma once
-#include "../common/Math.h"
+#include "../common/Common.h"
 #include "../common/Spectrum.h"
 #include "LightGeometry.h"      // area_pdf_direction
 using namespace wst;

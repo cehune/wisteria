@@ -1,5 +1,5 @@
 //
-//  Math.h
+//  Common.h
 //  wisteria
 //
 //  Cross-compile math vocabulary shared by CPU (simd) and Metal (metal_stdlib).
@@ -8,7 +8,7 @@
 //  than global scope, so `float3`, `dot`, `cross`, `normalize`, `sqrt`, `min/max/
 //  clamp`, `wst::Pi`, ... all resolve identically once a file does:
 //
-//      #include ".../common/Math.h"
+//      #include ".../common/Common.h"
 //      using namespace wst;
 //
 //  Nothing here uses MSL-only constructs, so any file built on this vocabulary is
@@ -43,7 +43,8 @@ namespace wst {
     using namespace simd;                        // float3, dot, cross, normalize, length, ...
     using std::sqrt;  using std::pow;
     using std::sin;   using std::cos;
-    using std::abs;   using std::min;  using std::max;  using std::clamp;
+    using std::abs;   // min / max / clamp come from simd (they cover scalar + vector);
+                      // pulling std::{min,max,clamp} too made scalar calls ambiguous
 
     using int_t    = int32_t;
     using uint_t   = uint32_t;

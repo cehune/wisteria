@@ -7,7 +7,7 @@
 // Shared sampling warps: map uniform [0,1)^n samples onto useful domains.
 
 #pragma once
-#include "Math.h"
+#include "Common.h"
 using namespace wst;
 
 

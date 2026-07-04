@@ -11,7 +11,7 @@
 //
 
 #pragma once
-#include "../common/Math.h"
+#include "../common/Common.h"
 using namespace wst;
 
 // Solid-angle pdf of choosing point `lp` on triangle (a,b,c) by uniform-area

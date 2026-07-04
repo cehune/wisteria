@@ -6,10 +6,7 @@
 //
 
 #pragma once
-#include <cstdint>
-#include "engine/shading/common/SharedTypes.h"   // struct Material (shared CPU/GPU ABI)
+#include "engine/shading/common/SharedTypes.h"   // struct Material + enum MaterialType (shared ABI)
 
-enum MaterialType : uint32_t { MATERIAL_LAMBERTIAN = 0 };
-
-// The Material struct lives in engine/gpu/SharedTypes.h — one definition compiled by
-// both C++ and Metal, so the layout can't drift. This header keeps the enum.
+// Material and MaterialType both live in engine/shading/common/SharedTypes.h — one
+// definition compiled by both C++ and Metal, so the layout and enum values can't drift.
