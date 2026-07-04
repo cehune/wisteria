@@ -85,7 +85,17 @@ void Scene::loadObjScene(const std::string& path,
 
     for (const ObjSubmesh& s : submeshes) {
         // create mat
-        uint32_t materialID = addMaterial({ MATERIAL_LAMBERTIAN, s.albedo });
+        Material gpuMaterial;
+        if (s.metallic > 0.5f) {                 // metallic -> conductor (Kd reused as F0, Pr as roughness)
+            gpuMaterial.type      = MATERIAL_CONDUCTOR;
+            gpuMaterial.albedo    = s.albedo;
+            gpuMaterial.roughness = s.roughness;
+        } else {
+            gpuMaterial.type      = MATERIAL_LAMBERTIAN;
+            gpuMaterial.albedo    = s.albedo;
+            gpuMaterial.roughness = 0.0f;
+        }
+        uint32_t materialID = addMaterial(gpuMaterial);
         // upload the geometry and create the instance
         uint32_t instanceID = addMeshFromData(s.vertices, s.indices, transform, materialID, device);
 

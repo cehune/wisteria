@@ -10,7 +10,7 @@
 PathTracerBackend::PathTracerBackend(MTL::Device* device, Scene* scene): _device(device), _scene(scene) {
     // TEMP
     _currentCameraState = CameraState();
-    _currentCameraState.position = {0.0f, 1.0f, 4.2f};   // outside the Cornell box, looking -z
+    _currentCameraState.position = {0.0f, 1.0f, 3.0f};   // outside the Cornell box, looking -z
     
     _commandQueue = device->newCommandQueue();
     _buildPipeline();
