@@ -36,5 +36,6 @@ inline BSDFSample lambertian_sample(Spectrum albedo, float3 wo, float2 u) {
     bs.wi = wi;
     bs.f = albedo * InvPi;
     bs.pdf = square_to_cosine_hemisphere_pdf(abs(cosTheta(wi)));
+    bs.isDelta = false;
     return bs;
 }

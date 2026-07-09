@@ -137,7 +137,10 @@ kernel void raytrace_kernel(
         float3 wo    = frame.toLocal(woW);
 
         // --- NEE: sample one light, add direct contribution if unoccluded ---
-        if (numLights > 0) {
+        // Skipped entirely for a delta material: it has zero probability of matching any
+        // light-sampled direction, so bsdf_eval/bsdf_pdf would just return 0 anyway --
+        // this avoids the wasted shadow ray.
+        if (!bsdf_is_delta(mat) && numLights > 0) {
             uint         li    = min(uint(next_1d(rng) * float(numLights)), numLights - 1u);
             Light        lt    = lights[li];
             InstanceData lInst = instanceData[lt.instanceID];
@@ -176,9 +179,9 @@ kernel void raytrace_kernel(
         throughput *= bs.f * abs(cosTheta(bs.wi)) / bs.pdf;
 
         // carry MIS state for the next iteration's emitter-hit weight
-        bsdfPdf        = bs.pdf;   // solid-angle pdf that generated the next ray
-        specularBounce = false;    // rough materials only so far; set true once a delta BSDF lands
-        prevP          = hitP;     // ref point for the next emitter-hit pdf
+        bsdfPdf        = bs.pdf;      // solid-angle pdf (or lobe-selection probability if delta)
+        specularBounce = bs.isDelta;  // delta lobes get full weight on the next emitter hit
+        prevP          = hitP;        // ref point for the next emitter-hit pdf
 
         // continuation ray, nudged off the surface to avoid self-intersection.
         float3 wiW = frame.toWorld(bs.wi);

@@ -99,10 +99,11 @@ inline float conductor_pdf(float alpha, float3 wo, float3 wi) {
 // Samples a reflection ray, returning the vector, evaluated BRDF, and solid-angle PDF.
 inline BSDFSample conductor_sample(float3 albedo, float alpha, float3 wo, float2 u) {
     BSDFSample bs;
-    bs.wi  = float3(0.0f);
-    bs.f   = float3(0.0f);
-    bs.pdf = 0.0f;
-    
+    bs.wi      = float3(0.0f);
+    bs.f       = float3(0.0f);
+    bs.pdf     = 0.0f;
+    bs.isDelta = false;   // GGX conductor is always a continuous (glossy) lobe
+
     if (wo.z <= 0.0f) return bs;
     
     // generate the microfacet normal

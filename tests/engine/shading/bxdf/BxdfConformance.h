@@ -30,9 +30,9 @@ inline float3 uniformHemisphere(float u1, float u2) {
     return float3{ r * std::cos(phi), r * std::sin(phi), z };
 }
 
-// Uniform direction on the full sphere; pdf = 1/(4*Pi) in solid angle. Needed for BxDFs
-// with a transmission lobe (e.g. a rough dielectric), where wi can land in either
-// hemisphere and a hemisphere-only estimator silently drops the BTDF entirely.
+// Uniform direction on the full sphere. pdf = 1/(4*Pi). Needed for BxDFs
+// with a transmission lobe like dielectric, where wi can land in either
+// hemisphere.
 inline float3 uniformSphere(float u1, float u2) {
     float z     = 2.0f * u1 - 1.0f;
     float r     = std::sqrt(std::max(0.0f, 1.0f - z * z));
@@ -90,10 +90,7 @@ inline double pdfIntegral(const PdfFn& pdf, float3 wo, uint32_t seed, int N = 40
     return acc / N;
 }
 
-// Full-sphere variant of directionalAlbedoBruteForce: for BxDFs with a transmission
-// lobe, eval(wo, wi) is only ever non-zero for a hemisphere-only wi if the BxDF is
-// reflection-only. A rough dielectric needs wi drawn from the full sphere to see the
-// BTDF half of eval at all.
+// full-sphere variant of directionalAlbedoBruteForce: for BxDFs with a transmission lobe
 inline float3 directionalAlbedoBruteForceFullSphere(const EvalFn& eval, float3 wo, uint32_t seed, int N = 400000) {
     std::mt19937 rng(seed);
     std::uniform_real_distribution<float> U(0.0f, 1.0f);
@@ -201,9 +198,7 @@ inline double reducedChiSquare(const SampleFn& sample, const PdfFn& pdf, float3 
     return dfBins > 1 ? chi2 / (double)(dfBins - 1) : 0.0;
 }
 
-// Full-sphere variant of reducedChiSquare, for BxDFs whose samples can land in either
-// hemisphere (e.g. a rough dielectric's transmission lobe). Bins cosTheta over [-1, 1]
-// instead of clamping negative-hemisphere samples into the theta=0 bin.
+// full-sphere variant of reducedChiSquare, for BxDFs with a transmission lobe
 inline double reducedChiSquareFullSphere(const SampleFn& sample, const PdfFn& pdf, float3 wo,
                                           uint32_t seed, int N = 200000,
                                           int thetaBins = 16, int phiBins = 16, int subSamplesPerBin = 64) {

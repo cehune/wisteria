@@ -21,10 +21,15 @@ using namespace wst;
 Mind that the args for each of the material types are going to be different!
 */
 
-// perceptual roughness -> GGX alpha, clamped away from 0 (true mirror = a delta, TODO).
+// perceptual roughness -> GGX alpha, clamped away from 0.
 inline float bsdf_alpha(Material mat) {
     float r = max(mat.roughness, 1e-3f);
     return r * r;
+}
+
+// True for materials whose current lobe is a Dirac delta (perfect mirror/refraction)
+inline bool bsdf_is_delta(Material mat) {
+    return mat.type == MATERIAL_DIELECTRIC && mat.roughness <= 0.0f;
 }
 
 // uDiscrete: extra 1D sample used only by materials that stochastically choose between
@@ -32,12 +37,16 @@ inline float bsdf_alpha(Material mat) {
 inline BSDFSample bsdf_sample(Material mat, float3 wo, float2 u, float uDiscrete) {
     if (mat.type == MATERIAL_CONDUCTOR)
         return conductor_sample(mat.albedo, bsdf_alpha(mat), wo, u);
-    if (mat.type == MATERIAL_DIELECTRIC)
+    if (mat.type == MATERIAL_DIELECTRIC) {
+        if (bsdf_is_delta(mat)) // smooth, otherwise rough by bsdf_alpha
+            return dielectric_smooth_sample(mat.albedo, mat.eta, wo, uDiscrete);
         return dielectric_sample(mat.albedo, bsdf_alpha(mat), mat.eta, wo, u, uDiscrete);
+    }
     return lambertian_sample(mat.albedo, wo, u);
 }
 
 inline Spectrum bsdf_eval(Material mat, float3 wo, float3 wi) {
+    if (bsdf_is_delta(mat)) return Spectrum(0.0f);
     if (mat.type == MATERIAL_CONDUCTOR)
         return conductor_eval(mat.albedo, bsdf_alpha(mat), wo, wi);
     if (mat.type == MATERIAL_DIELECTRIC)
@@ -46,6 +55,7 @@ inline Spectrum bsdf_eval(Material mat, float3 wo, float3 wi) {
 }
 
 inline float bsdf_pdf(Material mat, float3 wo, float3 wi) {
+    if (bsdf_is_delta(mat)) return 0.0f;
     if (mat.type == MATERIAL_CONDUCTOR)
         return conductor_pdf(bsdf_alpha(mat), wo, wi);
     if (mat.type == MATERIAL_DIELECTRIC)

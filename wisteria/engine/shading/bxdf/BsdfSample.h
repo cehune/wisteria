@@ -10,7 +10,8 @@
 using namespace wst;
 
 struct BSDFSample {
-    float3 wi;  // direction
-    float3 f;   // color
-    float  pdf; // cosine weighted pdf
+    float3 wi;      // direction
+    float3 f;       // color
+    float  pdf;     // solid-angle pdf (a discrete lobe-selection probability when isDelta)
+    bool   isDelta; // mirror, for smooth lobe
 };

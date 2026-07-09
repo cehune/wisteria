@@ -153,9 +153,10 @@ inline float dielectric_pdf(float alpha, float eta, float3 wo, float3 wi) {
 
 inline BSDFSample dielectric_sample(float3 albedo, float alpha, float eta, float3 wo, float2 u, float uDiscrete) {
     BSDFSample bs;
-    bs.wi  = float3(0.0f);
-    bs.f   = float3(0.0f);
-    bs.pdf = 0.0f;
+    bs.wi      = float3(0.0f);
+    bs.f       = float3(0.0f);
+    bs.pdf     = 0.0f;
+    bs.isDelta = false;
 
     if (wo.z == 0.0f) return bs;
 
@@ -190,5 +191,45 @@ inline BSDFSample dielectric_sample(float3 albedo, float alpha, float eta, float
     bs.pdf = dielectric_pdf(alpha, eta, wo, bs.wi);
     bs.f   = dielectric_eval(albedo, alpha, eta, wo, bs.wi);
 
+    return bs;
+}
+
+inline BSDFSample dielectric_smooth_sample(float3 albedo, float eta, float3 wo, float uDiscrete) {
+    BSDFSample bs;
+    bs.wi      = float3(0.0f);
+    bs.f       = float3(0.0f);
+    bs.pdf     = 0.0f;
+    bs.isDelta = true; // specular
+
+    if (wo.z == 0.0f) return bs;
+
+    // microfacet normal is exactly the surface normal
+    float3 m = float3{0.0f, 0.0f, sign(wo.z)};    
+    if (wo.z < 0.0f) m = -m; // Flip back to match the tracking hemisphere
+
+    // determine relative IOR context
+    float etaI = (wo.z > 0.0f) ? 1.0f : eta;
+    float etaT = (wo.z > 0.0f) ? eta : 1.0f;
+
+    // fresnel reflectance
+    FresnelResult fr = fresnel_dielectric(abs(dot(wo, m)), etaI, etaT);
+
+    // stochastically choose Reflection or Refraction
+    if (uDiscrete < fr.F) {
+        // Reflection
+        bs.wi = float3{-wo.x, -wo.y, wo.z};
+        // wo.z is the cosine
+        bs.f = albedo * fr.F * (1.0f / abs(wo.z));
+        bs.pdf = fr.F;
+    } else {
+        // Refraction (Snell's Law)
+        float etaRatio = etaI * (1.0f / etaT);
+        bs.wi.x = -etaRatio * wo.x;
+        bs.wi.y = -etaRatio * wo.y;
+        bs.wi.z  = -fr.cosThetaT * sign(wo.z);
+
+        bs.f = albedo * (1.0f - fr.F) * (etaRatio * etaRatio) * (1.0f / abs(bs.wi.z));
+        bs.pdf   = 1 - fr.F;
+    }
     return bs;
 }
