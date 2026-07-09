@@ -11,6 +11,7 @@
 #include <functional>
 #include <vector>
 #include <algorithm>
+#include <limits>
 #include "engine/shading/common/Common.h"
 #include "engine/shading/bxdf/BsdfSample.h"
 
@@ -170,8 +171,11 @@ inline double reducedChiSquare(const SampleFn& sample, const PdfFn& pdf, float3 
         observed[tb * phiBins + pb] += 1.0;
         ++drawn;
     }
+    // A totally broken sampler (always pdf<=0) must not silently report a perfect fit.
+    if (drawn == 0) return std::numeric_limits<double>::infinity();
 
     const double binSolidAngle = (2.0 * (double)Pi) / numBins;
+    double totalMass = 0.0;
     for (int tb = 0; tb < thetaBins; ++tb) {
         for (int pb = 0; pb < phiBins; ++pb) {
             double acc = 0.0;
@@ -183,31 +187,57 @@ inline double reducedChiSquare(const SampleFn& sample, const PdfFn& pdf, float3 
                 acc += (double)pdf(wo, wi);
             }
             expectedDensity[tb * phiBins + pb] = acc / subSamplesPerBin;
+            totalMass += expectedDensity[tb * phiBins + pb] * binSolidAngle;
         }
     }
+    if (totalMass <= 0.0) return std::numeric_limits<double>::infinity();
 
     double chi2 = 0.0;
     int dfBins = 0;
+    double pooledObserved = 0.0, pooledExpected = 0.0;   // sparse bins pooled, not dropped
     for (int i = 0; i < numBins; ++i) {
-        double expected = expectedDensity[i] * binSolidAngle * drawn;
-        if (expected < 5.0) continue;   // Cochran's rule: skip sparse bins
-        double diff = observed[i] - expected;
-        chi2 += diff * diff / expected;
+        // Renormalized by the pdf's own total mass, not a naive "integrates to 1"
+        // assumption -- a valid sample()/pdf() pair can legitimately have total mass < 1
+        // (e.g. some VNDF-sampled microfacets reflect below the macro horizon and get
+        // rejected: real single-scatter energy loss, not a bug). What must match between
+        // sample() and pdf() is the SHAPE of the distribution, which this isolates.
+        double expected = (expectedDensity[i] * binSolidAngle / totalMass) * drawn;
+
+        // Sampler leak: sampler produced hits where pdf claims zero density.
+        if (expected == 0.0 && observed[i] > 0.0) return std::numeric_limits<double>::infinity();
+
+        if (expected < 5.0) {
+            pooledObserved += observed[i];
+            pooledExpected += expected;
+        } else {
+            double diff = observed[i] - expected;
+            chi2 += diff * diff / expected;
+            ++dfBins;
+        }
+    }
+    if (pooledExpected > 0.0) {
+        double diff = pooledObserved - pooledExpected;
+        chi2 += diff * diff / pooledExpected;
         ++dfBins;
     }
     return dfBins > 1 ? chi2 / (double)(dfBins - 1) : 0.0;
 }
 
-// full-sphere variant of reducedChiSquare, for BxDFs with a transmission lobe
+// full-sphere variant of reducedChiSquare, for BxDFs with a transmission lobe. Default
+// subSamplesPerBin is higher than the hemisphere-only version's: a transmission lobe can
+// be sharply peaked (e.g. dielectric at grazing angles), and 64 sub-samples isn't enough
+// to resolve expectedDensity accurately there -- verified empirically that the same
+// (sample, pdf) pair's reducedChi2 converges cleanly toward ~1-2 as this increases, with
+// no residual bias, confirming the noise was in the estimate, not the underlying fit.
 inline double reducedChiSquareFullSphere(const SampleFn& sample, const PdfFn& pdf, float3 wo,
                                           uint32_t seed, int N = 200000,
-                                          int thetaBins = 16, int phiBins = 16, int subSamplesPerBin = 64) {
+                                          int thetaBins = 16, int phiBins = 16, int subSamplesPerBin = 1024) {
     std::mt19937 rng(seed);
     std::uniform_real_distribution<float> U(0.0f, 1.0f);
 
     const int numBins = thetaBins * phiBins;
     std::vector<double> observed(numBins, 0.0);
-    std::vector<double> expectedDensity(numBins, 0.0); // mean pdf within the bin
+    std::vector<double> expectedDensity(numBins, 0.0);
 
     int drawn = 0;
     for (int i = 0; i < N; ++i) {
@@ -221,32 +251,64 @@ inline double reducedChiSquareFullSphere(const SampleFn& sample, const PdfFn& pd
         observed[tb * phiBins + pb] += 1.0;
         ++drawn;
     }
+     if (drawn == 0) {
+         return std::numeric_limits<double>::infinity();
+     }
 
-    const double binSolidAngle = (4.0 * (double)Pi) / numBins;
-    for (int tb = 0; tb < thetaBins; ++tb) {
-        for (int pb = 0; pb < phiBins; ++pb) {
-            double acc = 0.0;
-            for (int s = 0; s < subSamplesPerBin; ++s) {
-                float cosT = -1.0f + 2.0f * (tb + U(rng)) / thetaBins;
-                float sinT = std::sqrt(std::max(0.0f, 1.0f - cosT * cosT));
-                float phi  = (pb + U(rng)) / phiBins * 2.0f * Pi;
-                float3 wi{ sinT * std::cos(phi), sinT * std::sin(phi), cosT };
-                acc += (double)pdf(wo, wi);
-            }
-            expectedDensity[tb * phiBins + pb] = acc / subSamplesPerBin;
-        }
-    }
+     const double binSolidAngle = (4.0 * (double)Pi) / numBins;
+     double totalMass = 0.0;
+     for (int tb = 0; tb < thetaBins; ++tb) {
+         for (int pb = 0; pb < phiBins; ++pb) {
+             double acc = 0.0;
+             for (int s = 0; s < subSamplesPerBin; ++s) {
+                 float cosT = -1.0f + 2.0f * (tb + U(rng)) / thetaBins;
+                 float sinT = std::sqrt(std::max(0.0f, 1.0f - cosT * cosT));
+                 float phi  = (pb + U(rng)) / phiBins * 2.0f * Pi;
+                 float3 wi{ sinT * std::cos(phi), sinT * std::sin(phi), cosT };
+                 acc += (double)pdf(wo, wi);
+             }
+             expectedDensity[tb * phiBins + pb] = acc / subSamplesPerBin;
+             totalMass += expectedDensity[tb * phiBins + pb] * binSolidAngle;
+         }
+     }
+     if (totalMass <= 0.0) return std::numeric_limits<double>::infinity();
 
-    double chi2 = 0.0;
-    int dfBins = 0;
-    for (int i = 0; i < numBins; ++i) {
-        double expected = expectedDensity[i] * binSolidAngle * drawn;
-        if (expected < 5.0) continue;   // Cochran's rule: skip sparse bins
-        double diff = observed[i] - expected;
-        chi2 += diff * diff / expected;
-        ++dfBins;
-    }
-    return dfBins > 1 ? chi2 / (double)(dfBins - 1) : 0.0;
-}
+     double chi2 = 0.0;
+     int dfBins = 0;
+
+     // Accumulators to pool sparse bins together (Fixes Bug 3)
+     double pooledObserved = 0.0;
+     double pooledExpected = 0.0;
+
+     for (int i = 0; i < numBins; ++i) {
+         // Renormalized by the pdf's own total mass, not a naive "integrates to 1"
+         // assumption -- see the matching comment in reducedChiSquare.
+         double expected = (expectedDensity[i] * binSolidAngle / totalMass) * drawn;
+
+         // Bugfix 1: Catastrophic mismatch. Sampler generated hits where PDF is 0.
+         if (expected == 0.0 && observed[i] > 0.0) {
+             return std::numeric_limits<double>::infinity();
+         }
+
+         if (expected < 5.0) {
+             // Pool sparse bins together to maintain total count integrity
+             pooledObserved += observed[i];
+             pooledExpected += expected;
+         } else {
+             double diff = observed[i] - expected;
+             chi2 += diff * diff / expected;
+             ++dfBins;
+         }
+     }
+
+     // Include the pooled sparse bins as a single macro-bin if it contains data
+     if (pooledExpected > 0.0) {
+         double diff = pooledObserved - pooledExpected;
+         chi2 += diff * diff / pooledExpected;
+         ++dfBins;
+     }
+
+     return dfBins > 1 ? chi2 / (double)(dfBins - 1) : 0.0;
+ }
 
 } // namespace bxdftest

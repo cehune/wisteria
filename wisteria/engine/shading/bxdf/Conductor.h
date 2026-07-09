@@ -167,3 +167,29 @@ inline BSDFSample conductor_sample(float3 albedo, float3 etaT, float3 k, bool ha
 
     return bs;
 }
+
+// Perfectly smooth conductor only reflects
+inline BSDFSample conductor_smooth_sample(float3 albedo, float3 etaT, float3 k, bool hasComplexIOR,
+                                           float3 wo) {
+    BSDFSample bs;
+    bs.wi      = float3(0.0f);
+    bs.f       = float3(0.0f);
+    bs.pdf     = 0.0f;
+    bs.isDelta = true;
+
+    if (wo.z <= 0.0f) return bs;
+
+    // mirror reflection about the shading normal (0,0,1) -- same formula as smooth
+    // dielectric's reflection branch, simpler here since there's only one side to it.
+    bs.wi = float3{-wo.x, -wo.y, wo.z};
+
+    // temp: TODO: we need MEDIUM TRACKING!!!!!
+    float3 F = hasComplexIOR
+        ? fresnel_conductor_exact(wo.z, 1.0f, etaT, k)   // etaI=1: air, no medium tracking yet
+        : fresnel_conductor_schlick(albedo, wo.z);
+
+    bs.f   = F * (1.0f / wo.z);
+    bs.pdf = 1.0f;
+
+    return bs;
+}

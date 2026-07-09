@@ -22,10 +22,19 @@ struct DielectricDirectionComponents {
   float etaT;
   float3 m;
   bool isReflection;
+  bool isValid; // <-- Centralized sanity check
 };
 
 inline DielectricDirectionComponents getDielectricDirectionComponents(float eta, float3 wo, float3 wi) {
   DielectricDirectionComponents d;
+  d.isValid = true;
+
+  // Guard against edge-case division by zero
+  if (wo.z == 0.0f || wi.z == 0.0f) {
+      d.isValid = false;
+      return d;
+  }
+
   d.etaI = (wo.z > 0.0f) ? 1.0f : eta;
   d.etaT = (wo.z > 0.0f) ? eta : 1.0f;
   // check if reflection or transmission
@@ -33,13 +42,32 @@ inline DielectricDirectionComponents getDielectricDirectionComponents(float eta,
 
   // microfacet normal m
   if (d.isReflection) {
-    d.m = normalize(wo + wi) * sign(wo.z);
+    d.m = normalize(wo + wi);
   } else {
     d.m = normalize(-(wo * d.etaI + wi * d.etaT));
   }
   if (dot(wo, d.m) < 0.0f) {
       d.m = -d.m;
   }
+
+  // these are really important checks that were screwing me up
+  // 1. Macro-horizon check: m tracks wo's hemisphere
+  // so a valid m must have the SAME sign as wo.z on both sides, not just when entering.
+  if ((d.m.z * wo.z) <= 0.0f) {
+      d.isValid = false;
+  }
+
+  // 2. Transmission / Reflection sanity checks
+  float cosWi = dot(wi, d.m);
+  if (d.isReflection) {
+      // For reflection, both rays must be on the same side of the microfacet (this is
+      // always true by construction for the reflection bisector -- kept for symmetry).
+      if (cosWi <= 0.0f) d.isValid = false;
+  } else {
+      // For transmission, rays must be on opposite sides of the microfacet.
+      if (cosWi >= 0.0f) d.isValid = false;
+  }
+
   return d;
 }
 
@@ -98,11 +126,12 @@ inline float3 dielectric_eval(float3 albedo, float alpha, float eta, float3 wo, 
   // 1. geometric correction
   // Determine which medium we are coming from based on wo.z
   DielectricDirectionComponents d = getDielectricDirectionComponents(eta, wo, wi);
+  if (!d.isValid) return float3(0.0f);
 
   // microfacet statistic
   float D = ggx_ndf(d.m, alpha);
-  float G = ggx_g2(abs(wo), abs(wi), alpha); 
-  
+  float G = ggx_g2(abs(wo), abs(wi), alpha);
+
   // fresnel energy
   FresnelResult fr = fresnel_dielectric(dot(wo, d.m), d.etaI, d.etaT);
   float F = fr.F;
@@ -130,6 +159,7 @@ inline float3 dielectric_eval(float3 albedo, float alpha, float eta, float3 wo, 
 // 
 inline float dielectric_pdf(float alpha, float eta, float3 wo, float3 wi) {
     DielectricDirectionComponents d = getDielectricDirectionComponents(eta, wo, wi);
+    if (!d.isValid) return 0.0f;
 
     float D = ggx_ndf(d.m, alpha);
     float G1 = ggx_g1(abs(wo), alpha);

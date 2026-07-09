@@ -29,17 +29,24 @@ inline float bsdf_alpha(Material mat) {
     return r * r;
 }
 
-// True for materials whose current lobe is a Dirac delta (perfect mirror/refraction)
+// True for materials whose current lobe is a Dirac delta (perfect mirror/refraction) --
+// zero-roughness dielectric or conductor. See BsdfSample.h's isDelta doc.
 inline bool bsdf_is_delta(Material mat) {
-    return mat.type == MATERIAL_DIELECTRIC && mat.roughness <= 0.0f;
+    return (mat.type == MATERIAL_DIELECTRIC || mat.type == MATERIAL_CONDUCTOR)
+        && mat.roughness <= 0.0f;
 }
 
 // uDiscrete: extra 1D sample used only by materials that stochastically choose between
-// multiple lobes (e.g. dielectric reflection vs. transmission). Ignored otherwise.
+// multiple lobes (e.g. dielectric reflection vs. transmission). Ignored otherwise --
+// smooth conductor has only one outcome (reflection), so it never touches uDiscrete.
 inline BSDFSample bsdf_sample(Material mat, float3 wo, float2 u, float uDiscrete) {
-    if (mat.type == MATERIAL_CONDUCTOR)
+    if (mat.type == MATERIAL_CONDUCTOR) {
+        if (bsdf_is_delta(mat))
+            return conductor_smooth_sample(mat.albedo, mat.conductorEta, mat.conductorK,
+                                            mat.hasComplexIOR != 0, wo);
         return conductor_sample(mat.albedo, mat.conductorEta, mat.conductorK,
                                  mat.hasComplexIOR != 0, bsdf_alpha(mat), wo, u);
+    }
     if (mat.type == MATERIAL_DIELECTRIC) {
         if (bsdf_is_delta(mat)) // smooth, otherwise rough by bsdf_alpha
             return dielectric_smooth_sample(mat.albedo, mat.eta, wo, uDiscrete);

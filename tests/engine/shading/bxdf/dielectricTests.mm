@@ -87,9 +87,25 @@ static const float       kEta = 1.5f; // typical glass, relative to air
         float3 rhoImportance = directionalAlbedoImportance(sample, kWo, 20u + i);
         float3 rhoBrute      = directionalAlbedoBruteForceFullSphere(eval, kWo, 30u + i);
 
+        // Upper bound only: for this ENTERING configuration (etap = eta > 1), the radiance-
+        // compression identity F + (1-F)/etap^2 is algebraically < 1 here (1/etap^2 < 1),
+        // so this is a real physical ceiling -- not a loose "no gain" sanity check.
         XCTAssertLessThanOrEqual(rhoImportance.x, 1.02f);
         XCTAssertEqualWithAccuracy(rhoImportance.x, rhoBrute.x, 0.04f);  // two independent estimators agree
-        if (a == 0.05f) XCTAssertGreaterThan(rhoImportance.x, 0.9f);    // little loss when smooth
+
+        if (a == 0.05f) {
+            // At near-zero roughness the VNDF sampler should closely approach the delta
+            // limit: total energy = F + (1-F)/etap^2, NOT ~1. The 1/etap^2 radiance-
+            // compression term (see dielectric_eval's transmission branch, and the exact
+            // version of this identity in dielectricSmoothTests.mm) means a single
+            // interface legitimately loses energy in radiance terms entering a denser
+            // medium -- that's real physics, not an energy leak, so "little loss when
+            // smooth" was the wrong expectation.
+            FresnelResult fr       = fresnel_dielectric(kWo.z, 1.0f, kEta);   // entering: etaI=1, etaT=eta
+            float         etap     = kEta;                                    // entering: etap = etaT/etaI = eta
+            float         expected = fr.F + (1.0f - fr.F) / (etap * etap);
+            XCTAssertEqualWithAccuracy(rhoImportance.x, expected, 0.05f);
+        }
     }
 }
 
