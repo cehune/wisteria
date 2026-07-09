@@ -2,7 +2,9 @@
 //  Bsdf.h
 //  wisteria
 //
-//  BxDF dispatch: the integrator talks to bsdf_sample / bsdf_eval / bsdf_pdf and never
+//  
+//  Created by celine on 2026-07-09.
+//. BxDF dispatch: the integrator talks to bsdf_sample / bsdf_eval / bsdf_pdf and never
 //  names a concrete BRDF. Routing is on Material.type. All three share the same
 //  BSDFSample / solid-angle-pdf contract, so MIS works uniformly across materials.
 //
@@ -36,7 +38,8 @@ inline bool bsdf_is_delta(Material mat) {
 // multiple lobes (e.g. dielectric reflection vs. transmission). Ignored otherwise.
 inline BSDFSample bsdf_sample(Material mat, float3 wo, float2 u, float uDiscrete) {
     if (mat.type == MATERIAL_CONDUCTOR)
-        return conductor_sample(mat.albedo, bsdf_alpha(mat), wo, u);
+        return conductor_sample(mat.albedo, mat.conductorEta, mat.conductorK,
+                                 mat.hasComplexIOR != 0, bsdf_alpha(mat), wo, u);
     if (mat.type == MATERIAL_DIELECTRIC) {
         if (bsdf_is_delta(mat)) // smooth, otherwise rough by bsdf_alpha
             return dielectric_smooth_sample(mat.albedo, mat.eta, wo, uDiscrete);
@@ -48,7 +51,8 @@ inline BSDFSample bsdf_sample(Material mat, float3 wo, float2 u, float uDiscrete
 inline Spectrum bsdf_eval(Material mat, float3 wo, float3 wi) {
     if (bsdf_is_delta(mat)) return Spectrum(0.0f);
     if (mat.type == MATERIAL_CONDUCTOR)
-        return conductor_eval(mat.albedo, bsdf_alpha(mat), wo, wi);
+        return conductor_eval(mat.albedo, mat.conductorEta, mat.conductorK,
+                               mat.hasComplexIOR != 0, bsdf_alpha(mat), wo, wi);
     if (mat.type == MATERIAL_DIELECTRIC)
         return dielectric_eval(mat.albedo, bsdf_alpha(mat), mat.eta, wo, wi);
     return lambertian_eval(mat.albedo, wo, wi);

@@ -32,10 +32,15 @@ enum MaterialType : wst::uint_t {
 };
 
 struct Material {
-    wst::uint_t type;          // MaterialType
-    wst::float3 albedo;
+    wst::uint_t type;            // MaterialType
+    wst::float3 albedo;          // Lambertian: diffuse reflectance. Conductor: Schlick F0
+                                  // fallback (used only when hasComplexIOR == 0).
     float       roughness;
-    float       eta;
+    float       eta;             // Dielectric: relative IOR.
+    wst::float3 conductorEta;    // Conductor: real part of the complex IOR (per-channel).
+    wst::float3 conductorK;      // Conductor: extinction coefficient (per-channel).
+    wst::uint_t hasComplexIOR;   // Conductor: 1 -> use conductorEta/K (exact Fresnel),
+                                  // 0 -> fall back to Schlick via albedo (no measured data).
 };
 
 struct CameraUniformsPT {

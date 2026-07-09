@@ -7,6 +7,7 @@
 
 #include "Scene.hpp"
 #include "engine/geometry/MeshLoader.hpp"   // ObjSubmesh + loadObjSubmeshes
+#include "engine/scene/ConductorPresets.hpp"
 #include <exception>
 #include <iostream>
 
@@ -86,11 +87,23 @@ void Scene::loadObjScene(const std::string& path,
     for (const ObjSubmesh& s : submeshes) {
         // create mat
         Material gpuMaterial;
-        gpuMaterial.eta = 1.0f;   // only the dielectric branch below overrides this
+        gpuMaterial.eta           = 1.0f;              // only the dielectric branch below overrides this
+        gpuMaterial.hasComplexIOR = 0;                 // only the conductor branch below may override this
+        gpuMaterial.conductorEta  = simd_float3{0, 0, 0};
+        gpuMaterial.conductorK    = simd_float3{0, 0, 0};
         if (s.metallic > 0.5f) {                 // metallic -> conductor (Kd reused as F0, Pr as roughness)
             gpuMaterial.type      = MATERIAL_CONDUCTOR;
             gpuMaterial.albedo    = s.albedo;
             gpuMaterial.roughness = s.roughness;
+
+            // Named metal (gold/silver/copper/aluminum) -> use its measured complex IOR
+            // for exact Fresnel; otherwise fall back to Schlick via albedo as F0.
+            ConductorPresets::IOR ior;
+            if (ConductorPresets::lookup(s.materialName, ior)) {
+                gpuMaterial.hasComplexIOR = 1;
+                gpuMaterial.conductorEta  = ior.eta;
+                gpuMaterial.conductorK    = ior.k;
+            }
         } else if (s.dissolve < 1.0f) {          // d < 1 means glass / basic dielectric
             // TODO: do a pbr thing with better material selection (new field or sumn)
             gpuMaterial.type      = MATERIAL_DIELECTRIC;

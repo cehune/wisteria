@@ -52,25 +52,69 @@ using namespace wst;
  4. Probability Density Function - Visible Normal (VNDF) Solid Angle PDF:
  */
 
-// Schlick's approximation for conductors, using the albedo as the base
-// is a bit of an approx for material properties
-inline float3 fresnel_conductor(float3 albedo, float cosThetaH) {
+// Schlick's approximation, using albedo as F0 - the fallback for any conductor material
+// without a measured complex IOR (see hasComplexIOR in Material).
+inline float3 fresnel_conductor_schlick(float3 albedo, float cosThetaH) {
     float c = 1.0f - cosThetaH;
     float c5 = c * c * c * c * c; // c^5
     return albedo + (float3(1.0f) - albedo) * c5;
 }
 
-inline float3 conductor_eval(float3 albedo, float alpha, float3 wo, float3 wi) {
-    if (wo.z <= 0.0f || wi.z <= 0.0f) return float3(0.0f);
+/*PBRTs eq from born and wolf, approx by mean split\
+https://pbr-book.org/3ed-2018/Reflection_Models/Specular_Reflection_and_Transmission#FrConductor
+
+n: index of refraction (how much we bend)
+k: extinction coeff (how fast it dies out)
+
+get rel ior because we can have a conductor submerged by another conductor, ie
+cant expect only air as the entrace medium
+*/
+inline float3 fresnel_conductor_exact(float cosTheta, float etaI, float3 etaT, float3 k) {
+    float cos2 = cosTheta * cosTheta;
+    float sin2 = 1.0f - cos2;
+
+    // account for etaI and etaT by calculating relative IORs
+    float3 nRel = etaT / etaI;
+    float3 kRel = k / etaI;
+
+    // born and wolf expansion
+    float3 n2 = nRel * nRel;
+    float3 k2 = kRel * kRel;
+    float3 mu = n2 - k2 - sin2; 
+    float3 a2b2 = sqrt(mu * mu + 4.0f * n2 * k2);
+    float3 a = sqrt(max(float3(0.0f), (a2b2 + mu) * 0.5f));
+
+    // r perpindicular, based on a2b2
+    float3 t1 = a2b2 + cos2;
+    float3 t2 = 2.0f * a * cosTheta;
+    float3 rPerpendicular = (t1 - t2) / (t1 + t2);
+
+    // r parallel
+    t1 = cos2 * a2b2 + sin2 * sin2;
+    t2 = t2 * sin2;
+    float3 rParallel = rPerpendicular * (t1 - t2) / (t1 + t2);
     
+    return (rPerpendicular + rParallel) * 0.5;
+}
+
+// hasComplexIOR selects exact (etaT, k) Fresnel when a measured preset exists, else falls
+// back to Schlick via albedo -- see Material.hasComplexIOR.
+inline float3 conductor_eval(float3 albedo, float3 etaT, float3 k, bool hasComplexIOR,
+                              float alpha, float3 wo, float3 wi) {
+    if (wo.z <= 0.0f || wi.z <= 0.0f) return float3(0.0f);
+
     // calculate micronormal half vector
     float3 m = normalize(wo + wi);
-    
+
     // eval
     float D = ggx_ndf(m, alpha);
     float G = ggx_g2(wo, wi, alpha);
-    float3 F = fresnel_conductor(albedo, dot(wo, m));
-    
+    float cosThetaH = dot(wo, m);
+    // TODO: WE NEED MEDIUM TRACKING!!!!
+    float3 F = hasComplexIOR
+        ? fresnel_conductor_exact(cosThetaH, 1.0f, etaT, k) 
+        : fresnel_conductor_schlick(albedo, cosThetaH);
+
     // assemble torrance sparrow microfacet
     float3 numerator = D * G * F;
     // wo.z and wi.z are the dots of wo and wi to the normal
@@ -97,7 +141,8 @@ inline float conductor_pdf(float alpha, float3 wo, float3 wi) {
 
 // Contract for conductors
 // Samples a reflection ray, returning the vector, evaluated BRDF, and solid-angle PDF.
-inline BSDFSample conductor_sample(float3 albedo, float alpha, float3 wo, float2 u) {
+inline BSDFSample conductor_sample(float3 albedo, float3 etaT, float3 k, bool hasComplexIOR,
+                                    float alpha, float3 wo, float2 u) {
     BSDFSample bs;
     bs.wi      = float3(0.0f);
     bs.f       = float3(0.0f);
@@ -105,20 +150,20 @@ inline BSDFSample conductor_sample(float3 albedo, float alpha, float3 wo, float2
     bs.isDelta = false;   // GGX conductor is always a continuous (glossy) lobe
 
     if (wo.z <= 0.0f) return bs;
-    
+
     // generate the microfacet normal
     // needs to be physically informed which is why we cant just sample a random direction
     float3 m = ggx_sample_vndf(wo, alpha, u);
-    
+
     // reflect wo across the microfacet normal to get the incoming ray wi
     bs.wi = normalize(2.0f * dot(wo, m) * m - wo);
-    
+
     // reject reflections that bounce beneath the geometric surface
     if (bs.wi.z <= 0.0f) return bs;
-    
+
     // pdf and evaluation
     bs.pdf = conductor_pdf(alpha, wo, bs.wi);
-    bs.f   = conductor_eval(albedo, alpha, wo, bs.wi);
-    
+    bs.f   = conductor_eval(albedo, etaT, k, hasComplexIOR, alpha, wo, bs.wi);
+
     return bs;
 }

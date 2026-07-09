@@ -58,6 +58,7 @@
 			membershipExceptions = (
 				engine/geometry/MeshLoader.cpp,
 				engine/scene/Camera/Camera.cpp,
+				engine/scene/ConductorPresets.cpp,
 				MetalImpl.cpp,
 				platform/scene/Scene.cpp,
 				platform/scene/SceneGeometryPool.cpp,
