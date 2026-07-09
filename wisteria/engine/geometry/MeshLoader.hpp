@@ -17,6 +17,7 @@ struct ObjSubmesh {
     simd_float3           albedo   {0.5f,0.5f,0.5f};   // Kd
     simd_float3           emission {0.0f,0.0f,0.0f};   // Ke  -> nonzero = area light
     float roughness = 0.0f, metallic = 0.0f, ior = 1.0f;  // Pr/Pm/Ni, for later BxDFs
+    float dissolve = 1.0f;  // for dielectric
     std::vector<Vertex>   vertices;
     std::vector<uint32_t> indices;
 };

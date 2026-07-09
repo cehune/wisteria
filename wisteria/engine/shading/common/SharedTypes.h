@@ -28,12 +28,14 @@ struct InstanceData {
 enum MaterialType : wst::uint_t {
     MATERIAL_LAMBERTIAN = 0,
     MATERIAL_CONDUCTOR  = 1,
+    MATERIAL_DIELECTRIC = 2,
 };
 
 struct Material {
     wst::uint_t type;          // MaterialType
-    wst::float3 albedo;        // Lambertian: diffuse reflectance;  Conductor: F0 (specular colour)
-    float       roughness;     // Conductor: perceptual roughness (alpha = roughness^2)
+    wst::float3 albedo;
+    float       roughness;
+    float       eta;
 };
 
 struct CameraUniformsPT {

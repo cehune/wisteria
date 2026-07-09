@@ -14,6 +14,7 @@
 #include "BsdfSample.h"
 #include "Lambertian.h"
 #include "Conductor.h"
+#include "Dielectric.h"
 using namespace wst;
 
 /*
@@ -26,20 +27,28 @@ inline float bsdf_alpha(Material mat) {
     return r * r;
 }
 
-inline BSDFSample bsdf_sample(Material mat, float3 wo, float2 u) {
+// uDiscrete: extra 1D sample used only by materials that stochastically choose between
+// multiple lobes (e.g. dielectric reflection vs. transmission). Ignored otherwise.
+inline BSDFSample bsdf_sample(Material mat, float3 wo, float2 u, float uDiscrete) {
     if (mat.type == MATERIAL_CONDUCTOR)
         return conductor_sample(mat.albedo, bsdf_alpha(mat), wo, u);
+    if (mat.type == MATERIAL_DIELECTRIC)
+        return dielectric_sample(mat.albedo, bsdf_alpha(mat), mat.eta, wo, u, uDiscrete);
     return lambertian_sample(mat.albedo, wo, u);
 }
 
 inline Spectrum bsdf_eval(Material mat, float3 wo, float3 wi) {
     if (mat.type == MATERIAL_CONDUCTOR)
         return conductor_eval(mat.albedo, bsdf_alpha(mat), wo, wi);
+    if (mat.type == MATERIAL_DIELECTRIC)
+        return dielectric_eval(mat.albedo, bsdf_alpha(mat), mat.eta, wo, wi);
     return lambertian_eval(mat.albedo, wo, wi);
 }
 
 inline float bsdf_pdf(Material mat, float3 wo, float3 wi) {
     if (mat.type == MATERIAL_CONDUCTOR)
         return conductor_pdf(bsdf_alpha(mat), wo, wi);
+    if (mat.type == MATERIAL_DIELECTRIC)
+        return dielectric_pdf(bsdf_alpha(mat), mat.eta, wo, wi);
     return lambertian_pdf(wo, wi);
 }

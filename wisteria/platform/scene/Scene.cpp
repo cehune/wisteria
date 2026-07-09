@@ -86,10 +86,17 @@ void Scene::loadObjScene(const std::string& path,
     for (const ObjSubmesh& s : submeshes) {
         // create mat
         Material gpuMaterial;
+        gpuMaterial.eta = 1.0f;   // only the dielectric branch below overrides this
         if (s.metallic > 0.5f) {                 // metallic -> conductor (Kd reused as F0, Pr as roughness)
             gpuMaterial.type      = MATERIAL_CONDUCTOR;
             gpuMaterial.albedo    = s.albedo;
             gpuMaterial.roughness = s.roughness;
+        } else if (s.dissolve < 1.0f) {          // d < 1 means glass / basic dielectric
+            // TODO: do a pbr thing with better material selection (new field or sumn)
+            gpuMaterial.type      = MATERIAL_DIELECTRIC;
+            gpuMaterial.albedo    = s.albedo;
+            gpuMaterial.roughness = s.roughness;
+            gpuMaterial.eta       = s.ior;
         } else {
             gpuMaterial.type      = MATERIAL_LAMBERTIAN;
             gpuMaterial.albedo    = s.albedo;

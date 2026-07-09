@@ -30,6 +30,16 @@ inline float3 uniformHemisphere(float u1, float u2) {
     return float3{ r * std::cos(phi), r * std::sin(phi), z };
 }
 
+// Uniform direction on the full sphere; pdf = 1/(4*Pi) in solid angle. Needed for BxDFs
+// with a transmission lobe (e.g. a rough dielectric), where wi can land in either
+// hemisphere and a hemisphere-only estimator silently drops the BTDF entirely.
+inline float3 uniformSphere(float u1, float u2) {
+    float z     = 2.0f * u1 - 1.0f;
+    float r     = std::sqrt(std::max(0.0f, 1.0f - z * z));
+    float phi   = 2.0f * Pi * u2;
+    return float3{ r * std::cos(phi), r * std::sin(phi), z };
+}
+
 // Directional-hemispherical reflectance rho(wo), importance-sampled through `sample`.
 inline float3 directionalAlbedoImportance(const SampleFn& sample, float3 wo, uint32_t seed, int N = 200000) {
     std::mt19937 rng(seed);
@@ -75,6 +85,41 @@ inline double pdfIntegral(const PdfFn& pdf, float3 wo, uint32_t seed, int N = 40
     double acc = 0.0;
     for (int i = 0; i < N; ++i) {
         float3 wi = uniformHemisphere(U(rng), U(rng));
+        acc += (double)pdf(wo, wi) / uniformPdf;
+    }
+    return acc / N;
+}
+
+// Full-sphere variant of directionalAlbedoBruteForce: for BxDFs with a transmission
+// lobe, eval(wo, wi) is only ever non-zero for a hemisphere-only wi if the BxDF is
+// reflection-only. A rough dielectric needs wi drawn from the full sphere to see the
+// BTDF half of eval at all.
+inline float3 directionalAlbedoBruteForceFullSphere(const EvalFn& eval, float3 wo, uint32_t seed, int N = 400000) {
+    std::mt19937 rng(seed);
+    std::uniform_real_distribution<float> U(0.0f, 1.0f);
+    const double uniformPdf = 1.0 / (4.0 * (double)Pi);
+    double accR = 0.0, accG = 0.0, accB = 0.0;
+    for (int i = 0; i < N; ++i) {
+        float3 wi = uniformSphere(U(rng), U(rng));
+        float3 f  = eval(wo, wi);
+        double w  = (double)std::fabs(wi.z) / uniformPdf;
+        accR += (double)f.x * w;
+        accG += (double)f.y * w;
+        accB += (double)f.z * w;
+    }
+    return float3{ (float)(accR / N), (float)(accG / N), (float)(accB / N) };
+}
+
+// Full-sphere variant of pdfIntegral. A two-lobe pdf (reflection + transmission, split
+// stochastically by Fresnel weight) only integrates to 1 across both hemispheres together
+// — each lobe alone integrates to less than 1.
+inline double pdfIntegralFullSphere(const PdfFn& pdf, float3 wo, uint32_t seed, int N = 400000) {
+    std::mt19937 rng(seed);
+    std::uniform_real_distribution<float> U(0.0f, 1.0f);
+    const double uniformPdf = 1.0 / (4.0 * (double)Pi);
+    double acc = 0.0;
+    for (int i = 0; i < N; ++i) {
+        float3 wi = uniformSphere(U(rng), U(rng));
         acc += (double)pdf(wo, wi) / uniformPdf;
     }
     return acc / N;
@@ -135,6 +180,59 @@ inline double reducedChiSquare(const SampleFn& sample, const PdfFn& pdf, float3 
             double acc = 0.0;
             for (int s = 0; s < subSamplesPerBin; ++s) {
                 float cosT = (tb + U(rng)) / thetaBins;
+                float sinT = std::sqrt(std::max(0.0f, 1.0f - cosT * cosT));
+                float phi  = (pb + U(rng)) / phiBins * 2.0f * Pi;
+                float3 wi{ sinT * std::cos(phi), sinT * std::sin(phi), cosT };
+                acc += (double)pdf(wo, wi);
+            }
+            expectedDensity[tb * phiBins + pb] = acc / subSamplesPerBin;
+        }
+    }
+
+    double chi2 = 0.0;
+    int dfBins = 0;
+    for (int i = 0; i < numBins; ++i) {
+        double expected = expectedDensity[i] * binSolidAngle * drawn;
+        if (expected < 5.0) continue;   // Cochran's rule: skip sparse bins
+        double diff = observed[i] - expected;
+        chi2 += diff * diff / expected;
+        ++dfBins;
+    }
+    return dfBins > 1 ? chi2 / (double)(dfBins - 1) : 0.0;
+}
+
+// Full-sphere variant of reducedChiSquare, for BxDFs whose samples can land in either
+// hemisphere (e.g. a rough dielectric's transmission lobe). Bins cosTheta over [-1, 1]
+// instead of clamping negative-hemisphere samples into the theta=0 bin.
+inline double reducedChiSquareFullSphere(const SampleFn& sample, const PdfFn& pdf, float3 wo,
+                                          uint32_t seed, int N = 200000,
+                                          int thetaBins = 16, int phiBins = 16, int subSamplesPerBin = 64) {
+    std::mt19937 rng(seed);
+    std::uniform_real_distribution<float> U(0.0f, 1.0f);
+
+    const int numBins = thetaBins * phiBins;
+    std::vector<double> observed(numBins, 0.0);
+    std::vector<double> expectedDensity(numBins, 0.0); // mean pdf within the bin
+
+    int drawn = 0;
+    for (int i = 0; i < N; ++i) {
+        BSDFSample bs = sample(wo, float2{ U(rng), U(rng) });
+        if (bs.pdf <= 0.0f) continue;
+        float cosT = std::min(1.0f, std::max(-1.0f, bs.wi.z));
+        float phi  = std::atan2(bs.wi.y, bs.wi.x);
+        if (phi < 0.0f) phi += 2.0f * Pi;
+        int tb = std::min(thetaBins - 1, (int)((cosT + 1.0f) * 0.5f * thetaBins));
+        int pb = std::min(phiBins - 1, (int)(phi / (2.0f * Pi) * phiBins));
+        observed[tb * phiBins + pb] += 1.0;
+        ++drawn;
+    }
+
+    const double binSolidAngle = (4.0 * (double)Pi) / numBins;
+    for (int tb = 0; tb < thetaBins; ++tb) {
+        for (int pb = 0; pb < phiBins; ++pb) {
+            double acc = 0.0;
+            for (int s = 0; s < subSamplesPerBin; ++s) {
+                float cosT = -1.0f + 2.0f * (tb + U(rng)) / thetaBins;
                 float sinT = std::sqrt(std::max(0.0f, 1.0f - cosT * cosT));
                 float phi  = (pb + U(rng)) / phiBins * 2.0f * Pi;
                 float3 wi{ sinT * std::cos(phi), sinT * std::sin(phi), cosT };

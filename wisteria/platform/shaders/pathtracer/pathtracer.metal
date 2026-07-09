@@ -130,7 +130,7 @@ kernel void raytrace_kernel(
             }
         }
 
-        if (dot(ns, woW) < 0.0f) ns = -ns;              // face the viewer (two-sided)
+        // Face the viewer (two-sided) but not for dieletrics
 
         // shading frame + local outgoing direction
         Frame  frame = Frame::fromNormal(ns);
@@ -169,7 +169,7 @@ kernel void raytrace_kernel(
         }
 
         // sample the BSDF for the next bounce
-        BSDFSample bs = bsdf_sample(mat, wo, next_2d(rng));
+        BSDFSample bs = bsdf_sample(mat, wo, next_2d(rng), next_1d(rng));
         if (bs.pdf <= 0.0f) break;
 
         // throughput *= f * cos / pdf   ( == albedo for a Lambertian )
@@ -180,9 +180,10 @@ kernel void raytrace_kernel(
         specularBounce = false;    // rough materials only so far; set true once a delta BSDF lands
         prevP          = hitP;     // ref point for the next emitter-hit pdf
 
-        // continuation ray, nudged off the surface to avoid self-intersection
-        r.origin       = hitP + ns * 1e-3f;
-        r.direction    = frame.toWorld(bs.wi);
+        // continuation ray, nudged off the surface to avoid self-intersection.
+        float3 wiW = frame.toWorld(bs.wi);
+        r.origin       = hitP + (dot(wiW, ns) > 0.0f ? ns : -ns) * 1e-3f;
+        r.direction    = wiW;
         r.min_distance = 1e-4f;
         r.max_distance = INFINITY;
     }

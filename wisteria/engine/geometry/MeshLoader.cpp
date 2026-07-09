@@ -118,6 +118,7 @@ ObjSubmesh& Geometry::Internal::getOrCreateSubmesh(int matID,
         submesh.roughness    = m.roughness;
         submesh.metallic     = m.metallic;
         submesh.ior          = m.ior;
+        submesh.dissolve     = m.dissolve;
     } else {
         // fallback for default material
         submesh.materialName = "default";
