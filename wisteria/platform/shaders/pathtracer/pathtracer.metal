@@ -11,7 +11,7 @@
 #include "../../../engine/shading/common/SharedTypes.h"
 #include "../../../engine/shading/common/Spectrum.h"
 #include "../../../engine/shading/common/Frame.h"
-#include "../../../engine/shading/bxdf/Lambertian.h"
+#include "../../../engine/shading/bxdf/Bsdf.h"
 #include "../common/sampler/IndependentSampler.h"
 #include "../common/Light.h"
 #include "../../../engine/shading/common/Sampling.h"
@@ -93,8 +93,8 @@ kernel void raytrace_kernel(
         }
 
         // triangle -> interpolated world shading normal + this instance's material
-        InstanceData inst   = instanceData[hit.instance_id];
-        Spectrum     albedo = materials[inst.materialID].albedo;
+        InstanceData inst = instanceData[hit.instance_id];
+        Material     mat  = materials[inst.materialID];
         uint base = inst.indexOffset + hit.primitive_id * 3;
         Vertex vA = vertices[indices[base + 0]];
         Vertex vB = vertices[indices[base + 1]];
@@ -159,9 +159,9 @@ kernel void raytrace_kernel(
 
                 if (shadowHit.type == intersection_type::none) {
                     float3   wiL   = frame.toLocal(ls.wi);
-                    Spectrum f     = lambertian_eval(albedo, wo, wiL);
+                    Spectrum f     = bsdf_eval(mat, wo, wiL);
                     float    cosL  = abs(cosTheta(wiL));
-                    float    pBsdf = lambertian_pdf(wo, wiL);        // bsdf pdf for the light direction
+                    float    pBsdf = bsdf_pdf(mat, wo, wiL);         // bsdf pdf for the light direction
                     float    w     = misWeight(ls.pdf, pBsdf, STRATEGY_LIGHT, kIntegratorMode);
                     L += throughput * f * ls.Li * cosL / ls.pdf * w;
                 }
@@ -169,7 +169,7 @@ kernel void raytrace_kernel(
         }
 
         // sample the BSDF for the next bounce
-        BSDFSample bs = lambertian_sample(albedo, wo, next_2d(rng));
+        BSDFSample bs = bsdf_sample(mat, wo, next_2d(rng));
         if (bs.pdf <= 0.0f) break;
 
         // throughput *= f * cos / pdf   ( == albedo for a Lambertian )
@@ -177,7 +177,7 @@ kernel void raytrace_kernel(
 
         // carry MIS state for the next iteration's emitter-hit weight
         bsdfPdf        = bs.pdf;   // solid-angle pdf that generated the next ray
-        specularBounce = false;    // Lambertian is non-delta; set true for mirror/glass later
+        specularBounce = false;    // rough materials only so far; set true once a delta BSDF lands
         prevP          = hitP;     // ref point for the next emitter-hit pdf
 
         // continuation ray, nudged off the surface to avoid self-intersection
