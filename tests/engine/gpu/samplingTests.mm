@@ -2,9 +2,6 @@
 //  samplingTests.mm
 //  wisteria
 //
-//  Host unit tests for Sampling.h — the power heuristic and the mode-gated MIS
-//  weight. Pure float logic, no GPU.
-//
 
 #import <XCTest/XCTest.h>
 #include "engine/shading/common/Sampling.h"

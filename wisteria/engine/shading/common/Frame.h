@@ -26,14 +26,14 @@ struct Frame {
         float sign = (f.n.z >= 0.0f) ? 1.0f : -1.0f;
         float a = -1.0f / (sign + f.n.z);
         float b = f.n.x * f.n.y * a;
-        f.s = float3(1.0f + sign * f.n.x * f.n.x * a, sign * b, -sign * f.n.x);
-        f.t = float3(b, sign + f.n.y * f.n.y * a, -f.n.y);
+        f.s = float3{1.0f + sign * f.n.x * f.n.x * a, sign * b, -sign * f.n.x};
+        f.t = float3{b, sign + f.n.y * f.n.y * a, -f.n.y};
         return f;
     }
 
     // Transforms a vector from world space to local space
     float3 toLocal(float3 v) const {
-        return float3(dot(v, s), dot(v, t), dot(v, n));
+        return float3{dot(v, s), dot(v, t), dot(v, n)};
     }
 
     // Transforms a vector from local space to world space

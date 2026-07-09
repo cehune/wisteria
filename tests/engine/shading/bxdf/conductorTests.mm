@@ -1,29 +1,20 @@
 //
 //  conductorTests.mm
 //  wisteria
-//
-//  Host unit tests for the isotropic GGX conductor (engine/shading/bxdf/Conductor.h).
-//  Runs off-GPU. Covers Fresnel endpoints, the GGX D normalization, the near-mirror
-//  reflection direction, and — the one that catches a measure/Jacobian bug —
-//  directional albedo <= 1 (energy conservation, no energy gain).
+// 
+//  Created by celine on 2026-07-08.
 //
 
 #import <XCTest/XCTest.h>
 #include <simd/simd.h>
 #include <random>
-#include <cmath>
 #include "engine/shading/bxdf/Conductor.h"
+#include "BxdfConformance.h"
+#include "../TestUtils.h"
 
-static inline simd_float3 f3(float x, float y, float z) { return simd_make_float3(x, y, z); }
-static inline simd_float2 f2(float x, float y)          { return simd_make_float2(x, y); }
+using namespace bxdftest;
 
-// Uniform direction on the upper hemisphere (pdf = 1/2pi).
-static simd_float3 uniformHemisphere(float u1, float u2) {
-    float z   = u1;
-    float r   = sqrtf(fmaxf(0.0f, 1.0f - z * z));
-    float phi = 2.0f * (float)M_PI * u2;
-    return f3(r * cosf(phi), r * sinf(phi), z);
-}
+static const simd_float3 kWo = simd_normalize(f3(0.4f, 0.0f, 0.9f));
 
 @interface conductorTests : XCTestCase
 @end
@@ -49,7 +40,7 @@ static simd_float3 uniformHemisphere(float u1, float u2) {
     const int N = 200000;
     double acc = 0.0;
     for (int i = 0; i < N; ++i) {
-        simd_float3 m = uniformHemisphere(U(rng), U(rng));
+        simd_float3 m = ::uniformHemisphere(U(rng), U(rng));
         acc += (double)ggx_ndf(m, a) * (double)m.z;
     }
     double integral = acc * (2.0 * M_PI) / N;   // divide out the uniform pdf (1/2pi)
@@ -58,33 +49,50 @@ static simd_float3 uniformHemisphere(float u1, float u2) {
 
 // Near-zero roughness: the sampled direction is the mirror reflection about +z.
 - (void)testNearMirrorDirection {
-    simd_float3 wo = simd_normalize(f3(0.3f, 0.0f, 0.9f));
-    BSDFSample bs = conductor_sample(f3(1,1,1), 1e-4f, wo, f2(0.5f, 0.5f));
-    simd_float3 mirror = f3(-wo.x, -wo.y, wo.z);   // reflect wo about the macronormal
+    BSDFSample bs = conductor_sample(f3(1,1,1), 1e-4f, kWo, f2(0.5f, 0.5f));
+    simd_float3 mirror = f3(-kWo.x, -kWo.y, kWo.z);
     XCTAssertGreaterThan(bs.pdf, 0.0f);
     XCTAssertGreaterThan((double)simd_dot(bs.wi, mirror), 0.999);
 }
 
-// Energy: directional albedo rho(wo) = E[f * cos / pdf] must not exceed 1 (no gain),
-// and stays near 1 at low roughness. With F0 = 1 the Fresnel is 1, so rho = E[G2/G1].
-- (void)testDirectionalAlbedoNoGain {
-    simd_float3 wo = simd_normalize(f3(0.4f, 0.0f, 0.9f));
+// Energy: importance-sampled directional albedo must agree with an independent
+// brute-force estimator and never exceed 1 (no gain), across a spread of roughness.
+- (void)testEnergyConservationAcrossRoughness {
     const float alphas[] = { 0.05f, 0.2f, 0.5f };
-    std::mt19937 rng(2024u);
-    std::uniform_real_distribution<float> U(0.0f, 1.0f);
-    const int N = 200000;
-
     for (float a : alphas) {
-        double acc = 0.0;
-        for (int i = 0; i < N; ++i) {
-            BSDFSample bs = conductor_sample(f3(1,1,1), a, wo, f2(U(rng), U(rng)));
-            if (bs.pdf > 0.0f)
-                acc += (double)(bs.f.x * fabsf(bs.wi.z) / bs.pdf);   // f * cos / pdf
-        }
-        double rho = acc / N;
-        XCTAssertLessThanOrEqual(rho, 1.01);              // no energy created
-        if (a == 0.05f) XCTAssertGreaterThan(rho, 0.9);  // little loss when smooth
+        SampleFn sample = [a](float3 wo, float2 u) { return conductor_sample(f3(1,1,1), a, wo, u); };
+        EvalFn   eval   = [a](float3 wo, float3 wi) { return conductor_eval(f3(1,1,1), a, wo, wi); };
+
+        float3 rhoImportance = directionalAlbedoImportance(sample, kWo, 10u);
+        float3 rhoBrute      = directionalAlbedoBruteForce(eval, kWo, 11u);
+
+        XCTAssertLessThanOrEqual(rhoImportance.x, 1.01f);
+        XCTAssertEqualWithAccuracy(rhoImportance.x, rhoBrute.x, 0.03f);  // two independent estimators agree
+        if (a == 0.05f) XCTAssertGreaterThan(rhoImportance.x, 0.9f);     // little loss when smooth
     }
+}
+
+- (void)testPdfIntegratesToOne {
+    const float a = 0.3f;
+    PdfFn pdf = [a](float3 wo, float3 wi) { return conductor_pdf(a, wo, wi); };
+    double integral = pdfIntegral(pdf, kWo, 12u);
+    XCTAssertEqualWithAccuracy(integral, 1.0, 0.05);
+}
+
+- (void)testReciprocity {
+    const float a = 0.3f;
+    simd_float3 F0 = f3(0.7f, 0.5f, 0.3f);
+    EvalFn eval = [a, F0](float3 wo, float3 wi) { return conductor_eval(F0, a, wo, wi); };
+    float err = maxReciprocityError(eval, 13u);
+    XCTAssertLessThan(err, 1e-4f);
+}
+
+- (void)testSamplerMatchesOwnPdfChiSquare {
+    const float a = 0.3f;
+    SampleFn sample = [a](float3 wo, float2 u) { return conductor_sample(f3(1,1,1), a, wo, u); };
+    PdfFn    pdf    = [a](float3 wo, float3 wi) { return conductor_pdf(a, wo, wi); };
+    double reducedChi2 = reducedChiSquare(sample, pdf, kWo, 14u);
+    XCTAssertLessThan(reducedChi2, 3.0);
 }
 
 @end

@@ -35,7 +35,7 @@ inline float2 square_to_uniform_disk(float2 u) {
         r     = o.y;
         theta = (Pi / 2.0f) - (Pi / 4.0f) * (o.x / o.y);
     }
-    return r * float2(cos(theta), sin(theta));
+    return r * float2{cos(theta), sin(theta)};
 }
 
 
@@ -48,7 +48,7 @@ So this is constrained so that we get a point on a unit sphere lol
 inline float3 square_to_cosine_hemisphere(float2 u) {
     float2 d = square_to_uniform_disk(u);
     float  z = sqrt(max(0.0f, 1.0f - dot(d, d)));
-    return float3(d.x, d.y, z);
+    return float3{d.x, d.y, z};
 }
 
 // pdf of the direction above, in solid angle: cos(theta) / pi.
