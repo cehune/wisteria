@@ -23,6 +23,10 @@ using namespace raytracing;
 // INTEGRATOR_MIS | INTEGRATOR_NEE | INTEGRATOR_BSDF
 constant int kIntegratorMode = INTEGRATOR_MIS;
 
+// Russian Roulette, if kminRRDepth is less then we die
+constant uint kMaxDepth   = 32;
+constant uint kMinRRDepth = 3;
+
 // Constant/gradient environment light — the only emitter for now.
 // Flatten to a constant Spectrum(x) for the white-furnace test.
 inline Spectrum env_radiance(float3 d) {
@@ -71,11 +75,9 @@ kernel void raytrace_kernel(
     r.min_distance = 1e-4f;
     r.max_distance = INFINITY;
 
-    // --- unidirectional path tracer: BSDF sampling against a constant-env light ---
-    // No NEE / MIS / Russian roulette yet . Albedo is a placeholder
-    // until the material buffer lands (next commit).
-    const uint MAX_DEPTH = 8;
-
+    // --- unidirectional path tracer ---
+    // NEE + BSDF sampling combined with MIS (see kIntegratorMode), materials and
+    // lights read from the per-instance buffers, Russian-roulette termination.
     Spectrum throughput = Spectrum(1.0f);
     Spectrum L          = Spectrum(0.0f);
     intersector<triangle_data, instancing> isect;
@@ -85,7 +87,7 @@ kernel void raytrace_kernel(
     bool   specularBounce = true;        // camera ray: NEE can't have sampled it
     float3 prevP          = cam.origin;  // vertex that shot r (ref point for emitter-hit pdf)
 
-    for (uint depth = 0; depth < MAX_DEPTH; ++depth) {
+    for (uint depth = 0; depth < kMaxDepth; ++depth) {
         auto hit = isect.intersect(r, accel);
         if (hit.type != intersection_type::triangle) {
             L += throughput * env_radiance(r.direction);   // ray escaped to the sky
@@ -150,6 +152,7 @@ kernel void raytrace_kernel(
                                              vertices, indices);
 
             if (ls.pdf > 0.0f && !is_black(ls.Li)) {
+                // Offset onto the side the shadow ray actually leaves from.
                 float3 sOffN = (dot(ls.wi, ns) > 0.0f) ? ns : -ns;
 
                 ray shadowRay;
@@ -179,6 +182,16 @@ kernel void raytrace_kernel(
 
         // throughput *= f * cos / pdf   ( == albedo for a Lambertian )
         throughput *= bs.f * abs(cosTheta(bs.wi)) / bs.pdf;
+
+        // Russian Roulette
+        // Clamped to [0, 0.95]: a dielectric's eta^2 radiance compression can push
+        // throughput above 1 (q > 1 is not a probability), and capping below 1
+        // guarantees every path eventually terminates instead of relying on kMaxDepth.
+        if (depth >= kMinRRDepth) {
+            float q = min(max(throughput.x, max(throughput.y, throughput.z)), 0.95f);
+            if (!(q > 0.0f) || next_1d(rng) >= q) break;
+            throughput /= q;
+        }
 
         // carry MIS state for the next iteration's emitter-hit weight
         bsdfPdf        = bs.pdf;      // solid-angle pdf (or lobe-selection probability if delta)
