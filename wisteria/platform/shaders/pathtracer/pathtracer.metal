@@ -150,8 +150,10 @@ kernel void raytrace_kernel(
                                              vertices, indices);
 
             if (ls.pdf > 0.0f && !is_black(ls.Li)) {
+                float3 sOffN = (dot(ls.wi, ns) > 0.0f) ? ns : -ns;
+
                 ray shadowRay;
-                shadowRay.origin       = hitP + ns * 1e-3f;
+                shadowRay.origin       = hitP + sOffN * 1e-3f;
                 shadowRay.direction    = ls.wi;
                 shadowRay.min_distance = 1e-4f;
                 shadowRay.max_distance = ls.dist - 1e-3f;
