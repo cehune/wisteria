@@ -36,4 +36,27 @@ inline std::string samplePath(const std::string& relative) {
     }
     return (repoRoot() / "samples" / relative).string();
 }
+
+// Absolute path to <root>/outputs/pfm/<relative>, creating the directory if it
+// doesn't exist. Honors WISTERIA_OUTPUTS as an override. Returns an empty
+// string if the repo root can't be found or the directory can't be created —
+// callers should fall back rather than write to an unpredictable CWD (Xcode
+// runs with CWD = $BUILT_PRODUCTS_DIR, which buries files in DerivedData).
+inline std::string outputPath(const std::string& relative) {
+    namespace fs = std::filesystem;
+    fs::path dir;
+    if (const char* env = std::getenv("WISTERIA_OUTPUTS")) {
+        dir = fs::path(env);
+    } else {
+        fs::path root = repoRoot();
+        if (root.empty()) return {};
+        dir = root / "outputs" / "pfm";
+    }
+
+    std::error_code ec;
+    fs::create_directories(dir, ec);   // no-op if it already exists
+    if (ec) return {};
+
+    return (dir / relative).string();
+}
 }  // namespace wisteria::assets

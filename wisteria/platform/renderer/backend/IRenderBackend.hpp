@@ -26,5 +26,7 @@ public:
     virtual void onKey(int key, bool pressed) = 0;
     virtual void onScroll(float delta) = 0;
     virtual void onMouseDrag(float dx, float dy) = 0;
+
+    virtual void exportCurrentImage(const std::string& path) = 0;
 };
 

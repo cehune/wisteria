@@ -30,6 +30,8 @@ public:
     void onScroll(float delta) override;
     void onMouseDrag(float dx, float dy) override;
 
+    void exportCurrentImage(const std::string& path) override { return; }
+
 private:
     void _updateCameraBuffer();
     

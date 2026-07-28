@@ -22,9 +22,9 @@ static double lumD(simd_float3 c) {
 // Two-pass reference: mean of luminance, and the sum of squared luminance deviations with double precision
 static void twoPassLum(const simd_float3* s, int N, double& outMeanY, double& outSS) {
     double sum = 0.0;
-
     // Collect the expected output mean 
     for (int i = 0; i < N; ++i) sum += lumD(s[i]);
+    const double mean = sum / (double)N;
     double ss = 0.0;
     
     // Collect the expected output deviation

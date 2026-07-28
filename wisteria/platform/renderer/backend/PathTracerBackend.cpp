@@ -6,6 +6,8 @@
 //
 
 #include "PathTracerBackend.hpp"
+#include "engine/io/AssetPath.hpp"
+#include <algorithm>
 
 PathTracerBackend::PathTracerBackend(MTL::Device* device, Scene* scene): _device(device), _scene(scene) {
     // TEMP
@@ -201,4 +203,81 @@ void PathTracerBackend::setCameraState(const CameraState& state) {
     // otherwise old samples from the previous view ghost into the new one.
     _updateCameraBuffer();
     _dirty = true;
+}
+
+void PathTracerBackend::onKey(int key, bool pressed) {
+    if (pressed && key == 1) exportCurrentImage("");   // S = save
+}
+
+void PathTracerBackend::exportCurrentImage(const std::string& path) {
+    std::vector<float> pixels;
+    uint32_t w = 0, h = 0;
+    if (!_readbackAccumulationTexture(pixels, w, h)) {
+        std::cerr << "exportCurrentImage: export failed, likely empty accumulation buffer";
+        return;
+    }
+
+    // Alpha is the per-pixel sample count N, just use min and max N to log the results for sanity
+    float minN = pixels[3], maxN = pixels[3];
+    for (size_t i = 3; i < pixels.size(); i += 4) {
+        minN = std::min(minN, pixels[i]);
+        maxN = std::max(maxN, pixels[i]);
+    }
+
+    std::string name = "wisteria_" + std::to_string(_sampleCount) + "spp.pfm";
+    std::filesystem::path filepath;
+    if (!path.empty()) {
+        filepath = path;                       // explicit path wins, used as given
+    } else {
+        // Land in <repo>/outputs/pfm
+        std::string out = wisteria::assets::outputPath(name);
+        filepath = out.empty() ? std::filesystem::path(name) : std::filesystem::path(out);
+    }
+
+    // Append rather than replace_extension(): replacing would turn    
+    if (filepath.extension() != ".pfm") {
+        filepath += ".pfm";
+    }
+
+    if (wisteria::pfm::writePFM(filepath.string(), pixels.data(), w, h)) {
+        std::cout << "Exported " << filepath.string()
+                  << " (" << w << "x" << h
+                  << ", ~" << _sampleCount << " spp encoded, per-pixel N "
+                  << minN << ".." << maxN << ")\n";
+    } else {
+        std::cerr << "exportCurrentImage: failed to write file to " << filepath.string() << "\n";
+    }
+}
+
+
+// Blits _accumulation (StorageModePrivate) into a Shared staging buffer and
+// copies it into `out` as tightly packed RGBA32F.
+bool PathTracerBackend::_readbackAccumulationTexture(std::vector<float>& out,
+                                                     uint32_t& outW, uint32_t& outH) {
+    if (!_accumulation) return false;
+
+    // don't use _width and _height because theres a moment between onResize and the dirty flag where accumulation isn't rebuilt
+    outW = static_cast<uint32_t>(_accumulation->width());
+    outH = static_cast<uint32_t>(_accumulation->height());
+
+    const NS::UInteger bytesPerRow = outW * 4 * sizeof(float);
+    const NS::UInteger byteCount = bytesPerRow * outH;
+
+    // need to convert the mtl accum texture to a buffer
+    MTL::Buffer* accumBuffer =  _device->newBuffer(byteCount, MTL::ResourceStorageModeShared);
+    if (!accumBuffer) return false;
+
+    MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
+    MTL::BlitCommandEncoder* blit = cmd->blitCommandEncoder();
+    blit->copyFromTexture(_accumulation, 0, 0, MTL::Origin(0,0,0),
+                          MTL::Size(_width, _height, 1), accumBuffer,
+                          0, bytesPerRow, byteCount);
+    blit->endEncoding();
+    cmd->commit();
+    cmd->waitUntilCompleted();
+
+    out.resize(static_cast<size_t>(outW) * outH * 4);
+    memcpy(out.data(), accumBuffer->contents(), byteCount);
+    accumBuffer->release();
+    return true;
 }
