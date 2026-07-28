@@ -207,9 +207,18 @@ kernel void raytrace_kernel(
     }
 
     // cumulative moving average across accumulated samples
-    float4 color = float4(L, 1.0f);
-    float4 prev  = accumTex.read(gid);
-    float4 accum = (prev * float(sampleCount) + color) / float(sampleCount + 1);
-    accumTex.write(accum, gid);                        // linear HDR — keep accumulation linear
-    outTex.write(float4(linear_to_srgb(accum.rgb), 1.0f), gid);   // encoded copy for display
+    float3 mu;
+    float n; // iters
+
+    if (sampleCount == 0u) {
+        mu = L;
+        n = 1.0f;
+    } else {
+        float4 prev = accumTex.read(gid);
+        mu = prev.rgb;
+        n = prev.a + 1.0f;
+        mu += (L - mu) / n;
+    }
+    accumTex.write(float4(mu, n), gid);                        // linear HDR — keep accumulation linear
+    outTex.write(float4(linear_to_srgb(mu), 1.0f), gid);   // encoded copy for display
 }
