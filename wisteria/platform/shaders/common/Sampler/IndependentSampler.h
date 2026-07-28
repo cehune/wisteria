@@ -37,6 +37,6 @@ inline uint hash_u(uint x) {
 }
 inline IndependentSampler make_sampler(uint2 p, uint sample) {
     IndependentSampler s;
-    s.state = hash_u(p.x * 1973u ^ p.y * 9277u ^ sample * 26699u) | 1u; // nonzero
+    s.state = hash_u(hash_u(p.x*1973u + p.y*9277u) + sample*26699u) | 1u; // nonzero
     return s;
 }
