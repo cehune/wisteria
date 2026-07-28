@@ -14,6 +14,7 @@
 #include "../../../engine/shading/bxdf/Bsdf.h"
 #include "../common/sampler/IndependentSampler.h"
 #include "../common/Light.h"
+#include "../../../engine/shading/estimator/Estimator.h"
 #include "../../../engine/shading/common/Sampling.h"
 
 using namespace metal;
@@ -45,7 +46,8 @@ inline float3 linear_to_srgb(float3 c) {
 kernel void raytrace_kernel(
     texture2d<float, access::write>       outTex       [[texture(0)]],
     texture2d<float, access::read_write>  accumTex     [[texture(1)]],
-    const device Vertex*                vertices     [[buffer(0)]],
+    texture2d<float, access::read_write>  moment2Tex   [[texture(2)]],
+    const device Vertex*                  vertices     [[buffer(0)]],
     const device uint*                    indices      [[buffer(1)]],
     constant CameraUniformsPT&            cam          [[buffer(3)]],
     constant uint&                        sampleCount  [[buffer(4)]],
@@ -207,18 +209,16 @@ kernel void raytrace_kernel(
     }
 
     // cumulative moving average across accumulated samples
-    float3 mu;
-    float n; // iters
+    EstimatorPixelState est;
 
-    if (sampleCount == 0u) {
-        mu = L;
-        n = 1.0f;
+    if (sampleCount == 0u) { // first sample
+        est = estimator_init(L);
     } else {
-        float4 prev = accumTex.read(gid);
-        mu = prev.rgb;
-        n = prev.a + 1.0f;
-        mu += (L - mu) / n;
+        float4 prevAccum = accumTex.read(gid);
+        float  prevM2    = moment2Tex.read(gid).r;
+        est = estimator_update(EstimatorPixelState{ prevAccum.rgb, prevAccum.a, prevM2 }, L);
     }
-    accumTex.write(float4(mu, n), gid);                        // linear HDR — keep accumulation linear
-    outTex.write(float4(linear_to_srgb(mu), 1.0f), gid);   // encoded copy for display
+    accumTex.write(float4(est.mu, est.n), gid);            // linear HDR — keep accumulation linear
+    moment2Tex.write(float4(est.m2), gid);                 // second moment of luminance
+    outTex.write(float4(linear_to_srgb(est.mu), 1.0f), gid);   // encoded copy for display
 }

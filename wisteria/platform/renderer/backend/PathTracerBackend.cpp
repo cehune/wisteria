@@ -24,6 +24,7 @@ PathTracerBackend::~PathTracerBackend() {
     if (_pso)          _pso->release();
     if (_offscreen)    _offscreen->release();
     if (_accumulation) _accumulation->release();
+    if (_moment2)      _moment2->release();
     if (_cameraBuffer) _cameraBuffer->release();
     if (_commandQueue) _commandQueue->release();
 }
@@ -63,8 +64,19 @@ void PathTracerBackend::_buildAccumulationTexture(uint32_t w, uint32_t h) {
        MTL::PixelFormatRGBA32Float, w, h, false);
     td->setUsage(MTL::TextureUsageShaderWrite | MTL::TextureUsageShaderRead);
     td->setStorageMode(MTL::StorageModePrivate); // only for the GPU, use private
-    
+
     _accumulation = _device->newTexture(td);
+
+    // Welford second moment of luminance/ Same size and lifetime as _accumulation,
+    // so it rebuilds and resets here in lockstep.
+    if (_moment2) _moment2->release();
+
+    MTL::TextureDescriptor* mtd = MTL::TextureDescriptor::texture2DDescriptor(
+       MTL::PixelFormatR32Float, w, h, false);
+    mtd->setUsage(MTL::TextureUsageShaderWrite | MTL::TextureUsageShaderRead);
+    mtd->setStorageMode(MTL::StorageModePrivate);
+
+    _moment2 = _device->newTexture(mtd);
 }
 
 void PathTracerBackend::_updateCameraBuffer() {
@@ -134,6 +146,7 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
 
     enc->setTexture(_offscreen, 0);
     enc->setTexture(_accumulation, 1);
+    enc->setTexture(_moment2, 2);   // R32F Welford m2 — must match moment2Tex [[texture(2)]]
     enc->setBuffer(vb,            0, 0);   // mega VB — for normal re-fetch on hit
     enc->setBuffer(ib,            0, 1);   // mega IB
     // buffer(2) (triangle count) retired — traversal is via the TLAS now.

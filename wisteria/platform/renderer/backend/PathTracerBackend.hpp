@@ -47,6 +47,7 @@ private:
 
     // accumulation buffer
     MTL::Texture*                   _accumulation = nullptr;
+    MTL::Texture*                   _moment2      = nullptr;
     bool                            _dirty        = true;
     uint32_t                        _sampleCount  = 0;
 
