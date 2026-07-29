@@ -10,9 +10,10 @@
 #pragma once
 #import <MetalKit/MetalKit.h>
 #include "Application.hpp"
+#include "platform/renderer/RenderConfig.hpp"
 
 @interface MetalView: MTKView<MTKViewDelegate>
-- (instancetype) initWithFrame:(CGRect) frame device:(id<MTLDevice>)device;
+- (instancetype)initWithFrame:(CGRect)frame device:(id<MTLDevice>)device config:(const RenderConfig&)config;
 - (void)applicationDidFinishLaunching:(NSNotification*)notification;
 - (void)drawInMTKView:(MTKView *)view;
 @end

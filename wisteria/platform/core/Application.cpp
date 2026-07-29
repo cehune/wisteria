@@ -6,12 +6,10 @@
 //
 
 #include "Application.hpp"
-#include "platform/renderer/backend/RasterBackend.hpp"
 
-
-Application::Application(MTL::Device* _device) {
+Application::Application(MTL::Device* _device, const RenderConfig& config) {
     device = _device;
-    init(device);
+    init(config);
 }
 
 void Application::update() {
@@ -22,13 +20,21 @@ void Application::render(const FrameContext& ctx) {
 }
 
 void Application::onResize(uint32_t w, uint32_t h) {
-    renderer->onResize(w, h);
+    renderer->onResize(w, h);   // Renderer remembers the size for backend replay
 }
 void Application::shutdown() {
     // std::cout << "shutdown";
 }
+void Application::run() {
+    // std::cout << "run";
+}
 
 void Application::onKey(int key, bool pressed) {
+    // Tab toggles switching between backend types
+    if (pressed && key == 48) {   // Tab
+        renderer->toggleBackend();
+        return;
+    }
     renderer->onKey(key, pressed);
 }
 void Application::onScroll(float delta) {
@@ -39,23 +45,11 @@ void Application::onMouseDrag(float dx, float dy) {
 }
 
 /* =======PRIVATE=======*/
-void Application::init(MTL::Device* device) {
-    this->device = device;
+void Application::init(const RenderConfig& config) {
+    _config = config;
 
-    // Cornell box: walls, two blocks, and an emissive ceiling quad. Materials come
-    // straight from the MTL (Kd -> albedo, Ke -> area light) — no hardcoded materials.
-    scene = loadScene(device);
+    scene = loadScene(device, config.scenePath);
     std::cout << "uploaded all \n";
 
-    renderer = std::make_unique<Renderer>(makeBackend(_backend));
-}
-
-std::unique_ptr<IRenderBackend> Application::makeBackend(BackendType type) {
-    switch (type) {
-        case BackendType::Raster:
-            return std::make_unique<RasterBackend>(device, scene.get());
-        case BackendType::PathTracer:
-            return std::make_unique<PathTracerBackend>(device, scene.get());
-    }
-    return nullptr; // unreachable; enum is exhaustive
+    renderer = std::make_unique<Renderer>(device, scene.get(), config.backend);
 }

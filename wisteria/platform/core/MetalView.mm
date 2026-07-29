@@ -16,14 +16,14 @@
 
 // Implementation, this is what actually creates the view object, which we need to then insert into the view heiraarchy
 // we override the device creation so that the view and device are connected at the start
-- (instancetype) initWithFrame:(CGRect) frame device:(id<MTLDevice>)device {
+- (instancetype) initWithFrame:(CGRect) frame device:(id<MTLDevice>)device config:(const RenderConfig&)config {
     self = [super initWithFrame:frame device:device];
     if (self) {
         self.delegate = self;
         self.colorPixelFormat = MTLPixelFormatBGRA8Unorm;
         self.depthStencilPixelFormat = MTLPixelFormatDepth32Float;
         self.framebufferOnly = NO;
-        app = new Application((__bridge MTL::Device*)self.device);
+        app = new Application((__bridge MTL::Device*)self.device, config);
         _lastFrameTime = CACurrentMediaTime();
     }
 
@@ -79,11 +79,11 @@
 - (BOOL)acceptsFirstResponder {
     return YES;
 }
-    
+
 - (void)dealloc {
     std::cout << "debug";
     delete app;
 }
- 
+
 
 @end

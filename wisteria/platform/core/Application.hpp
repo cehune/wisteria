@@ -8,38 +8,37 @@
 #pragma once
 #include <Metal/Metal.hpp>
 #include <QuartzCore/QuartzCore.hpp>
-#include "platform/renderer/backend/IRenderBackend.hpp"
-#include "platform/renderer/backend/PathTracerBackend.hpp"
 #include <iostream>
+#include <memory>
+#include <string>
 #include "Renderer.hpp"
+#include "platform/renderer/RenderConfig.hpp"
 #include "platform/scene/SceneLoader.hpp"
-
-enum class BackendType { Raster, PathTracer };
 
 class Application {
 public:
-    // Override if we do a non-metal version of this codebase
-    Application(MTL::Device* _device);
+    Application(MTL::Device* device, const RenderConfig& config = {});
+
     void update();
     void render(const FrameContext& ctx);
     void onResize(uint32_t width, uint32_t height);
     void shutdown();
     void run();
-    
-    // called via metalview
+
+    // called via MetalView
     void onKey(int key, bool pressed);
     void onScroll(float delta);
     void onMouseDrag(float dx, float dy);
-        
+
+    // passthroughs, user actions to give instruction to the current backend settings
+    void        setBackend(BackendType type) { renderer->setBackend(type); }
+    BackendType backendType() const          { return renderer->backendType(); }
+
 private:
-    void init(MTL::Device* device);
-    std::unique_ptr<IRenderBackend> makeBackend(BackendType type);
+    void init(const RenderConfig& config);
 
-    // Flip to BackendType::PathTracer to run the compute path tracer.
-    BackendType _backend = BackendType::PathTracer;
-
-    // GPU entry point
-    MTL::Device* device = nullptr;
-    std::unique_ptr<Scene>    scene;
-    std::unique_ptr<Renderer> renderer;
+    MTL::Device*              device = nullptr;
+    RenderConfig              _config;
+    std::unique_ptr<Scene>    scene;      // owns its geometry pool
+    std::unique_ptr<Renderer> renderer;   // owns the backends
 };
