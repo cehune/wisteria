@@ -43,6 +43,7 @@ public:
 
     // Informs a backend that the camera state changed
     virtual void setCameraState(const CameraState& state) = 0;
+    virtual bool allowsCameraMovement() = 0;
 
     virtual void exportCurrentImage(const std::string& path) = 0;
     // Non-null only for backends that accumulate progressively. Callers that

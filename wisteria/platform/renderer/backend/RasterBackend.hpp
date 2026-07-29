@@ -28,6 +28,7 @@ public:
     // interactive controls
     void onKey(int key, bool pressed) override {}
     void setCameraState(const CameraState& state) override { _currentCameraState = state; }
+    bool allowsCameraMovement() override { return true; }
 
     // TODO: implement
     void exportCurrentImage(const std::string& path) override;

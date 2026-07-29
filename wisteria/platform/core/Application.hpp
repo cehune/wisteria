@@ -40,7 +40,9 @@ public:
 
 private:
     void init(const RenderConfig& config);
-    void _updateCamera(float dt);
+
+    // Camera control is only for rasterization right now TODO: confirm
+    bool _cameraInputEnabled() const { return renderer->active() && renderer->active()->allowsCameraMovement(); }
 
     // camera viewpoint is shared among all backends
     Camera                            _camera;

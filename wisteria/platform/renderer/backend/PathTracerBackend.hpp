@@ -27,6 +27,7 @@ public:
     
     void onKey(int key, bool pressed) override;
     void setCameraState(const CameraState& state) override;
+    bool allowsCameraMovement() override { return false; }
     void waitIdle() override;
 
     // Progressive capability, hand back self
