@@ -11,6 +11,7 @@
 
 PathTracerBackend::PathTracerBackend(MTL::Device* device, Scene* scene): _device(device), _scene(scene) {
     // TEMP
+    _drawBufferSemaphore = dispatch_semaphore_create(_maxBuffers);
     _currentCameraState = CameraState();
     _currentCameraState.position = {0.0f, 1.0f, 3.0f};   // outside the Cornell box, looking -z
     
@@ -116,19 +117,32 @@ void PathTracerBackend::onResize(uint32_t w, uint32_t h) {
 // ── Per-frame trace ───────────────────────────────────────────────────────────
 
 void PathTracerBackend::draw(const FrameContext& ctx) {
-    // Lazily build offscreen texture on first call
-    if (!_offscreen) {
-        _buildOffscreenTexture(ctx.width, ctx.height);
-        _width = ctx.width;
-        _height = ctx.height;
+    if (ctx.width && ctx.height && (ctx.width != _width || ctx.height != _height)) {
+        onResize(ctx.width, ctx.height);
     }
+
+    if (_maxSamples == 0 || _sampleCount < _maxSamples) renderSamples(1);
+    if (ctx.drawable) presentRender(ctx);
+}
+
+// Accumulates n samples into _accumulation. Touches no drawable and reads
+// nothing off the FrameContext. 
+// everything sizes from _width/_height, from onResize().
+// We want this decoupling so production doesn't run at the display's refresh rate.
+// n is how many samples we want to add RIGHT NOW while sampleCount is the total
+void PathTracerBackend::renderSamples(uint32_t n) {
+    if (_width == 0 || _height == 0) return;
+
+    // Lazily build offscreen texture on first call
+    if (!_offscreen) _buildOffscreenTexture(_width, _height);
+
     // remake the accumulation buffer if it was dirty
     if (_dirty) {
-        _buildAccumulationTexture(ctx.width, ctx.height);
+        _buildAccumulationTexture(_width, _height);
         _dirty = false;
         _sampleCount = 0;
     }
-    
+
     // Build BLAS/TLAS + material buffer once, lazily (geometry is finalized by first draw).
     if (!_accelBuilt) {
         _accel.build(_device, _commandQueue, *_scene);
@@ -137,39 +151,12 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
         _accelBuilt = true;
     }
 
+    // Loop-invariant bindings and dispatch geometry, hoisted out of the
+    // per-sample loop below.
     IGeometryPool& pool = _scene->geometryPool();
-    MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
-    MTL::ComputeCommandEncoder* enc = cmd->computeCommandEncoder();
-    // pso is built from buildPipeline based on a given metal shader
-    enc->setComputePipelineState(_pso);
-
     MTL::Buffer* vb = pool.vertexBuffer();
     MTL::Buffer* ib = pool.indexBuffer();
-
-    enc->setTexture(_offscreen, 0);
-    enc->setTexture(_accumulation, 1);
-    enc->setTexture(_moment2, 2);   // R32F Welford m2 — must match moment2Tex [[texture(2)]]
-    enc->setBuffer(vb,            0, 0);   // mega VB — for normal re-fetch on hit
-    enc->setBuffer(ib,            0, 1);   // mega IB
-    // buffer(2) (triangle count) retired — traversal is via the TLAS now.
-    enc->setBuffer(_cameraBuffer, 0, 3);
-    enc->setBytes(&_sampleCount, sizeof(uint32_t), 4);
-
-    // TLAS (buffer 5) + per-instance shading payload (buffer 6) for the kernel.
-    // Residency: a TLAS does NOT keep its BLASes resident, so mark each used.
-    if (_accel.tlas()) {
-        enc->setAccelerationStructure(_accel.tlas(), 5);
-        enc->setBuffer(_accel.instanceData(), 0, 6);
-        for (MTL::AccelerationStructure* b : _accel.blases())
-            if (b) enc->useResource(b, MTL::ResourceUsageRead);
-    }
-    enc->setBuffer(_scene->materialBuffer(), 0, 7);   // per-instance materials
-
-    // area lights (buffer 8) + count (buffer 9). A light-less scene binds nothing
-    // at 8, so the kernel gates all light reads on numLights > 0.
-    if (_scene->lightBuffer()) enc->setBuffer(_scene->lightBuffer(), 0, 8);
     uint32_t numLights = _scene->numLights();
-    enc->setBytes(&numLights, sizeof(uint32_t), 9);
 
     // run the kernel function per pixel per thread, (makes as many threads as pixels)
     NS::UInteger tw = _pso->threadExecutionWidth();
@@ -177,20 +164,81 @@ void PathTracerBackend::draw(const FrameContext& ctx) {
     MTL::Size threadsPerGroup = MTL::Size::Make(tw, th, 1);
     MTL::Size threadsPerGrid  = MTL::Size::Make(_width, _height, 1);
 
-    enc->dispatchThreads(threadsPerGrid, threadsPerGroup);
-    enc->endEncoding();
-    ++_sampleCount;
-    
-    // kinda like dma, need to copy from off screen texture to actual texture
+    for (uint32_t i = 0; i < n; ++i) {
+        dispatch_semaphore_wait(_drawBufferSemaphore, DISPATCH_TIME_FOREVER);
+        MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
+        // max of _maxBuffers cmd buffers allowed to be queued at a time
+        cmd->addCompletedHandler([this](MTL::CommandBuffer*) {
+            dispatch_semaphore_signal(_drawBufferSemaphore);
+        });
+
+        MTL::ComputeCommandEncoder* enc = cmd->computeCommandEncoder();
+        // pso is built from buildPipeline based on a given metal shader
+        enc->setComputePipelineState(_pso);
+
+        enc->setTexture(_offscreen, 0);
+        enc->setTexture(_accumulation, 1);
+        enc->setTexture(_moment2, 2);   // R32F Welford m2 — must match moment2Tex [[texture(2)]]
+        enc->setBuffer(vb,            0, 0);   // mega VB — for normal re-fetch on hit
+        enc->setBuffer(ib,            0, 1);   // mega IB
+        // buffer(2) (triangle count) retired — traversal is via the TLAS now.
+        enc->setBuffer(_cameraBuffer, 0, 3);
+        // Re-bound every iteration: _sampleCount advances inside this loop, and
+        // the kernel's first-sample branch keys on it being 0.
+        enc->setBytes(&_sampleCount, sizeof(uint32_t), 4);
+
+        // TLAS (buffer 5) + per-instance shading payload (buffer 6) for the kernel.
+        // Residency: a TLAS does NOT keep its BLASes resident, so mark each used.
+        if (_accel.tlas()) {
+            enc->setAccelerationStructure(_accel.tlas(), 5);
+            enc->setBuffer(_accel.instanceData(), 0, 6);
+            for (MTL::AccelerationStructure* b : _accel.blases())
+                if (b) enc->useResource(b, MTL::ResourceUsageRead);
+        }
+        enc->setBuffer(_scene->materialBuffer(), 0, 7);   // per-instance materials
+
+        // area lights (buffer 8) + count (buffer 9). A light-less scene binds nothing
+        // at 8, so the kernel gates all light reads on numLights > 0.
+        if (_scene->lightBuffer()) enc->setBuffer(_scene->lightBuffer(), 0, 8);
+        enc->setBytes(&numLights, sizeof(uint32_t), 9);
+
+        enc->dispatchThreads(threadsPerGrid, threadsPerGroup);
+        enc->endEncoding();
+        cmd->commit();
+        ++_sampleCount;
+    }
+}
+
+// Blit-only: the kernel already wrote the sRGB-encoded image into _offscreen in the compute shader
+void PathTracerBackend::presentRender(const FrameContext& ctx) {
+    if (!ctx.drawable || !_offscreen) return;
+
     CA::MetalDrawable* metalDrawable = static_cast<CA::MetalDrawable*>(ctx.drawable);
+    MTL::Texture* drawableTex = metalDrawable->texture();
+    std::cout << "off=" << _offscreen->width() << "x" << _offscreen->height()
+          << "  draw=" << drawableTex->width() << "x" << drawableTex->height() << "\n";
+
+    if (!drawableTex) return;
+
+    // Mid-drag the drawable can already be a size ahead of _offscreen. 
+    // Skip the frame since the next one comes after onResize anyway.
+    if (_offscreen->width()  != drawableTex->width() ||
+        _offscreen->height() != drawableTex->height()) return;
+
+    // kinda like dma, need to copy from off screen texture to actual texture
+    MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
     MTL::BlitCommandEncoder* blit = cmd->blitCommandEncoder();
-    blit->copyFromTexture(_offscreen, metalDrawable->texture());
+    blit->copyFromTexture(_offscreen, drawableTex);
     blit->endEncoding();
 
     // schedules to appear in the window
     cmd->presentDrawable(ctx.drawable);
     cmd->commit();
 }
+
+void PathTracerBackend::continueTo(uint32_t newTarget) {
+       _maxSamples = newTarget;   // draw()'s halt check resumes automatically next frame
+   }
 
 void PathTracerBackend::setCameraState(const CameraState& state) {
     _currentCameraState.far = state.far;

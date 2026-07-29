@@ -15,6 +15,7 @@
 #include "engine/scene/Camera/Camera.hpp"
 #include "engine/io/PFM.h"
 #include <filesystem>
+#include <semaphore>
 
 class PathTracerBackend : public IRenderBackend {
 public:
@@ -24,18 +25,23 @@ public:
     void draw(const FrameContext& ctx) override;
     void onResize(uint32_t width, uint32_t height) override;
     
-    // Don't really do these for path tracing for now.
     void onKey(int key, bool pressed) override;
     void onScroll(float delta) override { return; };
     void onMouseDrag(float dx, float dy) override { return; };
     void setCameraState(const CameraState& state);
     void exportCurrentImage(const std::string& path) override;
     
+    // Production and display for the draw call
+    void renderSamples(uint32_t n = 1);
+    void presentRender(const FrameContext& ctx);
+    void continueTo(uint32_t newTarget);
+    
 private:
     void _buildPipeline();
     void _buildOffscreenTexture(uint32_t w, uint32_t h);
     void _updateCameraBuffer();
     void _buildAccumulationTexture(uint32_t w, uint32_t h);
+
     bool _readbackAccumulationTexture(std::vector<float>& out,
                                       uint32_t& outW, uint32_t& outH);
 
@@ -54,6 +60,10 @@ private:
     MTL::Texture*                   _moment2      = nullptr;
     bool                            _dirty        = true;
     uint32_t                        _sampleCount  = 0;
+    uint32_t                        _maxSamples   = 20000;
+    // triple buffer for draw commands if we want to add more than one sample per draw loop
+    static constexpr uint32_t       _maxBuffers = 3;
+    dispatch_semaphore_t            _drawBufferSemaphore;
 
     // acceleration structures (BLAS per mesh + TLAS over instances)
     AccelStructures                 _accel;
