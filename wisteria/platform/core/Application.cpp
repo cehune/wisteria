@@ -7,7 +7,7 @@
 
 #include "Application.hpp"
 #include "platform/renderer/backend/RasterBackend.hpp"
-#include "engine/io/AssetPath.hpp"
+
 
 Application::Application(MTL::Device* _device) {
     device = _device;
@@ -41,15 +41,10 @@ void Application::onMouseDrag(float dx, float dy) {
 /* =======PRIVATE=======*/
 void Application::init(MTL::Device* device) {
     this->device = device;
-    pool     = std::make_unique<SceneGeometryPool>();
-    scene    = std::make_unique<Scene>(*pool);
+
     // Cornell box: walls, two blocks, and an emissive ceiling quad. Materials come
     // straight from the MTL (Kd -> albedo, Ke -> area light) — no hardcoded materials.
-    scene->loadObjScene(wisteria::assets::samplePath("cornell_box.obj"),
-                        matrix_identity_float4x4, device);
-
-    // Build the GPU mega buffers from everything staged above.
-    pool->finalize();
+    scene = loadScene(device);
     std::cout << "uploaded all \n";
 
     renderer = std::make_unique<Renderer>(makeBackend(_backend));

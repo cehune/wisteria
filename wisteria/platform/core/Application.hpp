@@ -12,7 +12,7 @@
 #include "platform/renderer/backend/PathTracerBackend.hpp"
 #include <iostream>
 #include "Renderer.hpp"
-#include "Scene.hpp"
+#include "platform/scene/SceneLoader.hpp"
 
 enum class BackendType { Raster, PathTracer };
 
@@ -41,6 +41,5 @@ private:
     // GPU entry point
     MTL::Device* device = nullptr;
     std::unique_ptr<Scene>    scene;
-    std::unique_ptr<IGeometryPool> pool;
     std::unique_ptr<Renderer> renderer;
 };

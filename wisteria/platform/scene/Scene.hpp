@@ -13,10 +13,11 @@
 #include "SceneGeometryPool.hpp"
 #include <simd/simd.h>
 #include <unordered_map>
+#include <memory>
 
 class Scene {
 public:
-    Scene(IGeometryPool& pool);
+    explicit Scene(std::unique_ptr<IGeometryPool> pool);
     ~Scene() { if (_materialBuffer) _materialBuffer->release(); }
 
     // --- geometry & instancing ------------------------------------------------
@@ -51,7 +52,7 @@ public:
     // call before render for setup
     // void finalize(MTL::Device* device);
 
-    IGeometryPool& geometryPool() { return _pool; }
+    IGeometryPool& geometryPool() { return *_pool; }
     MTL::Buffer* materialBuffer()     { return _materialBuffer; }
     std::vector<Mesh>& meshes() { return _meshes; }
     std::vector<MeshInstance>& instances() { return _meshInstances; }
@@ -75,7 +76,7 @@ private:
     std::vector<Material>           _materials;
 
     // materials
-    IGeometryPool&                  _pool;
+    std::unique_ptr<IGeometryPool>  _pool;
     MTL::Buffer*                    _materialBuffer = nil;
     
     // lights

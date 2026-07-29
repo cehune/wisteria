@@ -11,7 +11,7 @@
 #include <exception>
 #include <iostream>
 
-Scene::Scene(IGeometryPool& pool): _pool(pool) {}
+Scene::Scene(std::unique_ptr<IGeometryPool> pool): _pool(std::move(pool)) {}
 
 void Scene::buildMaterialBuffer(MTL::Device* device) {
     if (_materials.empty()) return;
@@ -42,7 +42,7 @@ uint32_t Scene::addMesh(const std::vector<Vertex>& verts,
                         MTL::Device* device) {
     Mesh mesh;
     mesh.name = "mesh";
-    _pool.uploadMesh(mesh, verts, indices, device);   // sets offsets / counts / bounds
+    _pool->uploadMesh(mesh, verts, indices, device);   // sets offsets / counts / bounds
     mesh.index = (uint32_t)_meshes.size();
     _meshes.push_back(mesh);
     return (uint32_t)mesh.index;

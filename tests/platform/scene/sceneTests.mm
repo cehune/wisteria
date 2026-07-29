@@ -8,6 +8,7 @@
 #import <XCTest/XCTest.h>
 #include "platform/scene/Scene.hpp"
 #include "MockGeometryPool.hpp"
+#include <memory>
 
 @interface sceneTests : XCTestCase
 @end
@@ -19,8 +20,9 @@
 // multi-material file front-end; addMeshFromData is addMesh + one addInstance).
 
 - (void)testInstancingReusesMeshUpload {
-    MockGeometryPool pool;
-    Scene scene(pool);
+    auto poolOwned = std::make_unique<MockGeometryPool>();
+    MockGeometryPool& pool = *poolOwned;      // Scene owns it; keep a ref to assert on
+    Scene scene(std::move(poolOwned));
     simd::float4x4 I = matrix_identity_float4x4;
 
     std::vector<Vertex>   verts(3);
@@ -41,8 +43,9 @@
 }
 
 - (void)testInstanceIndexesAcrossMeshes {
-    MockGeometryPool pool;
-    Scene scene(pool);
+    auto poolOwned = std::make_unique<MockGeometryPool>();
+    MockGeometryPool& pool = *poolOwned;      // Scene owns it; keep a ref to assert on
+    Scene scene(std::move(poolOwned));
     simd::float4x4 I = matrix_identity_float4x4;
 
     std::vector<Vertex>   verts(3);
@@ -71,8 +74,9 @@
 }
 
 - (void)testAddLightStampsTwoWayLink {
-    MockGeometryPool pool;
-    Scene scene(pool);
+    auto poolOwned = std::make_unique<MockGeometryPool>();
+    MockGeometryPool& pool = *poolOwned;      // Scene owns it; keep a ref to assert on
+    Scene scene(std::move(poolOwned));
     simd::float4x4 I = matrix_identity_float4x4;
 
     std::vector<Vertex>   verts(3);
