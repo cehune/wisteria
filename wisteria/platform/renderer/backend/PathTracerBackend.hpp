@@ -17,7 +17,7 @@
 #include <filesystem>
 #include <semaphore>
 
-class PathTracerBackend : public IRenderBackend {
+class PathTracerBackend : public IRenderBackend, public IProgressiveRenderer {
 public:
     PathTracerBackend(MTL::Device* device, Scene* scene);
     ~PathTracerBackend();
@@ -29,10 +29,13 @@ public:
     void onScroll(float delta) override { return; };
     void onMouseDrag(float dx, float dy) override { return; };
     void setCameraState(const CameraState& state);
+
+    // Progressive capability, hand back self
+    IProgressiveRenderer* asProgressive() override { return this; }
     void exportCurrentImage(const std::string& path) override;
     
     // Production and display for the draw call
-    void renderSamples(uint32_t n = 1);
+    void renderSamples(uint32_t n) override;
     void presentRender(const FrameContext& ctx);
     void continueTo(uint32_t newTarget);
     

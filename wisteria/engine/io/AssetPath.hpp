@@ -2,11 +2,8 @@
 //  AssetPath.hpp
 //  wisteria
 //
-//  Resolves paths to samples
-//
-//  repoRoot() walks up from this header's compile-time location (__FILE__)
-//  until it finds the directory that contains "samples/", then assets are
-//  resolved inside it. Replace with a real asset/bundle system once one exists.
+//  Created by celine on 2026-07-28.
+//  Resolves paths to outputs
 //
 #pragma once
 #include <cstdlib>
@@ -37,12 +34,10 @@ inline std::string samplePath(const std::string& relative) {
     return (repoRoot() / "samples" / relative).string();
 }
 
-// Absolute path to <root>/outputs/pfm/<relative>, creating the directory if it
-// doesn't exist. Honors WISTERIA_OUTPUTS as an override. Returns an empty
-// string if the repo root can't be found or the directory can't be created —
-// callers should fall back rather than write to an unpredictable CWD (Xcode
-// runs with CWD = $BUILT_PRODUCTS_DIR, which buries files in DerivedData).
-inline std::string outputPath(const std::string& relative) {
+// Absolute path to <root>/outputs/<subdir>/<relative>, creating the directory
+// if it doesn't exist.
+inline std::string outputPath(const std::string& relative,
+                              const std::string& subdir = "") {
     namespace fs = std::filesystem;
     fs::path dir;
     if (const char* env = std::getenv("WISTERIA_OUTPUTS")) {
@@ -50,13 +45,50 @@ inline std::string outputPath(const std::string& relative) {
     } else {
         fs::path root = repoRoot();
         if (root.empty()) return {};
-        dir = root / "outputs" / "pfm";
+        dir = root / "outputs";
     }
+    if (!subdir.empty()) dir /= subdir;
 
     std::error_code ec;
     fs::create_directories(dir, ec);   // no-op if it already exists
     if (ec) return {};
 
     return (dir / relative).string();
+}
+
+// Where a render should actually be written
+//
+//   requested empty    -> <outputs>/<ext>/<defaultName>
+//   requested relative -> <outputs>/<ext>/<requested>
+//   requested absolute -> exactly as given, an explicit instruction
+inline std::filesystem::path resolveOutputPath(const std::string& requested,
+                                               const std::string& defaultName,
+                                               const std::string& extension) {
+    namespace fs = std::filesystem;
+    const std::string want = requested.empty() ? defaultName : requested;
+
+    fs::path result;
+    if (fs::path(want).is_absolute()) {
+        result = want;
+    } else {
+        // append extension (pfm default) not replace in case their name is like blah.1.5
+        const std::string subdir = extension.empty() || extension[0] != '.'
+            ? extension : extension.substr(1);
+        const std::string resolved = outputPath(want, subdir);
+        result = resolved.empty() ? fs::path(want) : fs::path(resolved);
+    }
+
+    if (result.extension() != extension) result += extension;
+    return result;
+}
+
+// Absolute, symlink-resolved form, for logging. A relative name in a message
+// is meaningless without knowing where the binary was launched from.
+inline std::filesystem::path displayPath(const std::filesystem::path& p) {
+    namespace fs = std::filesystem;
+    std::error_code ec;
+    fs::path r = fs::weakly_canonical(p, ec);
+    if (ec) r = fs::absolute(p, ec);
+    return ec ? p : r;
 }
 }  // namespace wisteria::assets

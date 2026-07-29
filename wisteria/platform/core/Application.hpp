@@ -25,6 +25,8 @@ public:
     void shutdown();
     void run();
 
+    bool renderOffline();
+
     // called via MetalView
     void onKey(int key, bool pressed);
     void onScroll(float delta);

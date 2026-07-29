@@ -272,28 +272,18 @@ void PathTracerBackend::exportCurrentImage(const std::string& path) {
         maxN = std::max(maxN, pixels[i]);
     }
 
-    std::string name = "wisteria_" + std::to_string(_sampleCount) + "spp.pfm";
-    std::filesystem::path filepath;
-    if (!path.empty()) {
-        filepath = path;                       // explicit path wins, used as given
-    } else {
-        // Land in <repo>/outputs/pfm
-        std::string out = wisteria::assets::outputPath(name);
-        filepath = out.empty() ? std::filesystem::path(name) : std::filesystem::path(out);
-    }
-
-    // Append rather than replace_extension(): replacing would turn    
-    if (filepath.extension() != ".pfm") {
-        filepath += ".pfm";
-    }
+    const std::string defaultName = "wisteria_" + std::to_string(_sampleCount) + "spp.pfm";
+    const std::filesystem::path filepath =
+        wisteria::assets::resolveOutputPath(path, defaultName, ".pfm");
 
     if (wisteria::pfm::writePFM(filepath.string(), pixels.data(), w, h)) {
-        std::cout << "Exported " << filepath.string()
+        std::cout << "Exported " << wisteria::assets::displayPath(filepath).string()
                   << " (" << w << "x" << h
                   << ", ~" << _sampleCount << " spp encoded, per-pixel N "
                   << minN << ".." << maxN << ")\n";
     } else {
-        std::cerr << "exportCurrentImage: failed to write file to " << filepath.string() << "\n";
+        std::cerr << "exportCurrentImage: failed to write file to "
+                  << wisteria::assets::displayPath(filepath).string() << "\n";
     }
 }
 

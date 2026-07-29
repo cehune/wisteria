@@ -140,6 +140,13 @@ void RasterBackend::onKey(int key, bool pressed) {
         default: break;
     }
 }
+void RasterBackend::exportCurrentImage(const std::string& path) {
+    // TODO: implement
+   
+    std::cerr << "RasterBackend::exportCurrentImage: not implemented yet (wanted "
+              << path << ")\n";
+}
+
 void RasterBackend::onScroll(float delta) {
     _cameraController->onScroll(delta);
 }

@@ -44,6 +44,32 @@ void Application::onMouseDrag(float dx, float dy) {
     renderer->onMouseDrag(dx, dy);
 }
 
+bool Application::renderOffline() {
+    // The offline flow sends no resize events, so set size at the start
+    // TODO: Enable this for raster
+    renderer->onResize(_config.width, _config.height);
+
+    IRenderBackend* backend = renderer->active();
+    if (!backend) return false;
+
+    // TODO: setup non progressive (raster) path for offline rendering and remove this check
+    IProgressiveRenderer* progressive = backend->asProgressive();
+    if (!progressive) {
+        std::cerr << "offline render: the active backend can't accumulate samples\n";
+        return false;
+    }
+
+    const uint32_t spp = _config.targetSamples ? _config.targetSamples : 256;
+
+    std::cout << "offline: " << _config.width << "x" << _config.height
+              << " @ " << spp << " spp\n";
+
+    // TODO: consolidate to just a "render" helper for this path
+    progressive->renderSamples(spp);
+    backend->exportCurrentImage(_config.outPath);
+    return true;
+}
+
 /* =======PRIVATE=======*/
 void Application::init(const RenderConfig& config) {
     _config = config;
