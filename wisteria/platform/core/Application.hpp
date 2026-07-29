@@ -14,6 +14,8 @@
 #include "Renderer.hpp"
 #include "platform/renderer/RenderConfig.hpp"
 #include "platform/scene/SceneLoader.hpp"
+#include "engine/scene/Camera/Camera.hpp"
+#include "engine/scene/Camera/FlyController.hpp"
 
 class Application {
 public:
@@ -38,7 +40,13 @@ public:
 
 private:
     void init(const RenderConfig& config);
+    void _updateCamera(float dt);
 
+    // camera viewpoint is shared among all backends
+    Camera                            _camera;
+    CameraState                       _cameraState;
+    std::unique_ptr<CameraController> _controller;
+    
     MTL::Device*              device = nullptr;
     RenderConfig              _config;
     std::unique_ptr<Scene>    scene;      // owns its geometry pool

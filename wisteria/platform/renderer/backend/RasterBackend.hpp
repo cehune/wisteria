@@ -25,10 +25,9 @@ public:
     
     // TODO change camera controller using a enum class later on if we make more types
     
-    // Camera controls
-    void onKey(int key, bool pressed) override;
-    void onScroll(float delta) override;
-    void onMouseDrag(float dx, float dy) override;
+    // interactive controls
+    void onKey(int key, bool pressed) override {}
+    void setCameraState(const CameraState& state) override { _currentCameraState = state; }
 
     // TODO: implement
     void exportCurrentImage(const std::string& path) override;
@@ -44,8 +43,7 @@ private:
     std::vector<PipelineKey>         _pipelines;
     MTL::DepthStencilState*          _depthState = nullptr;
     Camera                           _camera;
-    CameraState                      _currentCameraState;
-    std::unique_ptr<CameraController> _cameraController;
+    CameraState                      _currentCameraState;   // cache of the shared camera
     
     uint32_t _width  = 0;
     uint32_t _height = 0;

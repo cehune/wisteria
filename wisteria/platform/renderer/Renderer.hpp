@@ -26,8 +26,7 @@ public:
 
     // input, forwarded to the active backend
     void onKey(int key, bool pressed);
-    void onScroll(float delta);
-    void onMouseDrag(float dx, float dy);
+    void setCameraState(const CameraState& state);
 
     // Backend selection. Public so a UI button or the CLI can drive the switch
     void        setBackend(BackendType type);
@@ -50,4 +49,7 @@ private:
     // Last size seen, replayed onto a backend the first time it becomes active.
     uint32_t _width  = 0;
     uint32_t _height = 0;
+
+    CameraState _cameraState;
+    bool        _hasCamera = false;
 };

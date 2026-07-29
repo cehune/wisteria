@@ -26,9 +26,8 @@ public:
     void onResize(uint32_t width, uint32_t height) override;
     
     void onKey(int key, bool pressed) override;
-    void onScroll(float delta) override { return; };
-    void onMouseDrag(float dx, float dy) override { return; };
-    void setCameraState(const CameraState& state);
+    void setCameraState(const CameraState& state) override;
+    void waitIdle() override;
 
     // Progressive capability, hand back self
     IProgressiveRenderer* asProgressive() override { return this; }

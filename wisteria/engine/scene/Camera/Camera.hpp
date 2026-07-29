@@ -14,6 +14,16 @@ struct CameraState {
     float      far         = 1000.0f;
 };
 
+// Exact equality for idempotence
+//
+// TODO: Deliberately NOT for detecting camera movement since tiny drift is uneqaul
+inline bool operator==(const CameraState& a, const CameraState& b) {
+    return simd_all(a.position == b.position)
+        && simd_all(a.orientation.vector == b.orientation.vector)
+        && a.fov == b.fov && a.near == b.near && a.far == b.far;
+}
+inline bool operator!=(const CameraState& a, const CameraState& b) { return !(a == b); }
+
 class Camera { // mainly for the raster because we need to control it
 public:
     Vec3 right(CameraState& state) const { return simd_act(state.orientation, Vec3{1, 0, 0});};

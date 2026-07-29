@@ -102,6 +102,9 @@ void PathTracerBackend::_updateCameraBuffer() {
 }
 
 void PathTracerBackend::onResize(uint32_t w, uint32_t h) {
+    // Don't reset if same dimens because we can reuse the accumulation
+    if (w == _width && h == _height && _offscreen && _accumulation) return;
+
     _buildOffscreenTexture(w, h);
     // camera object actions
     _width = w;
@@ -165,6 +168,9 @@ void PathTracerBackend::renderSamples(uint32_t n) {
     MTL::Size threadsPerGrid  = MTL::Size::Make(_width, _height, 1);
 
     for (uint32_t i = 0; i < n; ++i) {
+        // headless path cant drain the command buffers like the window can per frame, need some manually draining
+        NS::AutoreleasePool* arp = NS::AutoreleasePool::alloc()->init();
+
         dispatch_semaphore_wait(_drawBufferSemaphore, DISPATCH_TIME_FOREVER);
         MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
         // max of _maxBuffers cmd buffers allowed to be queued at a time
@@ -206,6 +212,9 @@ void PathTracerBackend::renderSamples(uint32_t n) {
         enc->endEncoding();
         cmd->commit();
         ++_sampleCount;
+
+        // Safe to drain here since Metal retains a committed command buffer until it finishes
+        arp->release();
     }
 }
 
@@ -215,8 +224,6 @@ void PathTracerBackend::presentRender(const FrameContext& ctx) {
 
     CA::MetalDrawable* metalDrawable = static_cast<CA::MetalDrawable*>(ctx.drawable);
     MTL::Texture* drawableTex = metalDrawable->texture();
-    std::cout << "off=" << _offscreen->width() << "x" << _offscreen->height()
-          << "  draw=" << drawableTex->width() << "x" << drawableTex->height() << "\n";
 
     if (!drawableTex) return;
 
@@ -240,7 +247,18 @@ void PathTracerBackend::continueTo(uint32_t newTarget) {
        _maxSamples = newTarget;   // draw()'s halt check resumes automatically next frame
    }
 
+// Wait for idle state before allowing a switch to an alternative backend
+void PathTracerBackend::waitIdle() {
+    // cmd buffer is last to complete, wait 
+    MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
+    cmd->commit();
+    cmd->waitUntilCompleted();
+}
+
 void PathTracerBackend::setCameraState(const CameraState& state) {
+    // don't reset if we can reuse the existing accumulation
+    if (state == _currentCameraState) return;
+
     _currentCameraState.far = state.far;
     _currentCameraState.near = state.near;
     _currentCameraState.fov = state.fov;
@@ -254,7 +272,7 @@ void PathTracerBackend::setCameraState(const CameraState& state) {
 }
 
 void PathTracerBackend::onKey(int key, bool pressed) {
-    if (pressed && key == 1) exportCurrentImage("");   // S = save
+    if (pressed && key == 35) exportCurrentImage("");   // P = save picture
 }
 
 void PathTracerBackend::exportCurrentImage(const std::string& path) {

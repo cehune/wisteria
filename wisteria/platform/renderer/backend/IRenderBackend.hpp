@@ -7,6 +7,7 @@
 #pragma once
 #include <Metal/Metal.hpp>
 #include "Scene.hpp"
+#include "engine/scene/Camera/Camera.hpp"
 #include <string>
 
 struct FrameContext {
@@ -33,10 +34,15 @@ public:
     virtual void draw(const FrameContext& ctx) = 0;
     virtual void onResize(uint32_t width, uint32_t height) = 0;
 
-    // Input Events, expect to just forward to a camera controller
+    // Backend-specific key actions only. Camera input no longer arrives here —
+    // one camera lives above the backends, so scroll/drag drive that instead.
     virtual void onKey(int key, bool pressed) = 0;
-    virtual void onScroll(float delta) = 0;
-    virtual void onMouseDrag(float dx, float dy) = 0;
+
+    // Block until this backend's queued GPU work has completed.
+    virtual void waitIdle() {}
+
+    // Informs a backend that the camera state changed
+    virtual void setCameraState(const CameraState& state) = 0;
 
     virtual void exportCurrentImage(const std::string& path) = 0;
     // Non-null only for backends that accumulate progressively. Callers that

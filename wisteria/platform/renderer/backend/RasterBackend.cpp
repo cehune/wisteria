@@ -45,8 +45,6 @@ RasterBackend::RasterBackend(MTL::Device* device, Scene* scene): _device(device)
     _depthState = device->newDepthStencilState(dsd);
     dsd->release();
 
-    // Camera controller: fly cam for scene design (swap to OrbitController to orbit).
-    _cameraController = std::make_unique<FlyController>();
 
     std::cout << "rasterizer setup all done \n";
     
@@ -68,9 +66,6 @@ void RasterBackend::draw(const FrameContext& ctx) {
     }
     enc->setRenderPipelineState(pso);
     enc->setDepthStencilState(_depthState);
-    
-    // camera movement based on input actions
-    _currentCameraState = _cameraController->update(_currentCameraState, ctx.dt);
 
     // Advance the triple-buffer ring, then write this frame's camera into the
     // slot the GPU isn't reading
@@ -127,19 +122,6 @@ void RasterBackend::_updateCameraBuffer() {
     }
 }
 
-void RasterBackend::onKey(int key, bool pressed) {
-    // Platform input mapping lives here (platform layer), not in the engine
-    // controllers: translate macOS ANSI key codes into semantic camera actions.
-    switch (key) {
-        case 13: _cameraController->onAction(CameraAction::Forward, pressed); break; // W
-        case 0:  _cameraController->onAction(CameraAction::Left,    pressed); break; // A
-        case 1:  _cameraController->onAction(CameraAction::Back,    pressed); break; // S
-        case 2:  _cameraController->onAction(CameraAction::Right,   pressed); break; // D
-        case 14: _cameraController->onAction(CameraAction::Up,      pressed); break; // E
-        case 12: _cameraController->onAction(CameraAction::Down,    pressed); break; // Q
-        default: break;
-    }
-}
 void RasterBackend::exportCurrentImage(const std::string& path) {
     // TODO: implement
    
@@ -147,12 +129,6 @@ void RasterBackend::exportCurrentImage(const std::string& path) {
               << path << ")\n";
 }
 
-void RasterBackend::onScroll(float delta) {
-    _cameraController->onScroll(delta);
-}
-void RasterBackend::onMouseDrag(float dx, float dy) {
-    _cameraController->onMouseDrag(dx, dy);
-}
 
 /**
  

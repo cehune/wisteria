@@ -8,6 +8,7 @@
 #include "simd/simd.h"
 #include "engine/scene/Camera/Camera.hpp"
 #include "engine/scene/Camera/OrbitController.hpp"
+#include "engine/scene/Camera/FlyController.hpp"
 
 static const float EPS = 1e-4f;
 
@@ -63,13 +64,62 @@ static bool mat4Equal(simd_float4x4 A, simd_float4x4 B, float eps = EPS) {
     XCTAssert(vec3Equal(u, simd_make_float3(0, 1, 0)));
 }
 
+// The bool from update() gates whether progressive accumulation is reset, so a
+// controller that reports movement with no input would pin the path tracer at
+// one sample. Guard that contract directly.
+- (void)testControllerReportsNoMovementWhenIdle {
+    OrbitController controller;
+    CameraState state;
+
+    XCTAssertTrue(controller.update(state, 0.016f));   // first call seeds the pose
+    XCTAssertFalse(controller.update(state, 0.016f));  // nothing moved since
+    XCTAssertFalse(controller.update(state, 0.016f));
+
+    controller.onScroll(1.0f);                         // zoom moves the camera
+    XCTAssertTrue(controller.update(state, 0.016f));
+    XCTAssertFalse(controller.update(state, 0.016f));
+}
+
+- (void)testFlyControllerAdoptsSuppliedPose {
+    FlyController controller;
+    CameraState state;
+    state.position = simd_make_float3(3.0f, 4.0f, 5.0f);
+
+    XCTAssertTrue(controller.update(state, 0.0f));
+    XCTAssert(vec3Equal(state.position, simd_make_float3(3.0f, 4.0f, 5.0f)));
+}
+
+// Backends use == to decide whether a pushed camera is actually new; if this
+// were wrong, every backend switch would discard accumulated samples.
+- (void)testCameraStateEqualityIsExact {
+    CameraState a, b;
+    XCTAssertTrue(a == b);
+
+    b.position = simd_make_float3(0.0f, 0.0f, 1e-6f);
+    XCTAssertTrue(a != b);
+
+    b = a;
+    XCTAssertTrue(a == b);
+    b.fov += 1e-6f;
+    XCTAssertTrue(a != b);
+
+    // A copy round-tripped through a controller update must still compare equal
+    // to itself.
+    FlyController controller;
+    CameraState moved;
+    controller.update(moved, 0.016f);
+    CameraState copy = moved;
+    XCTAssertTrue(copy == moved);
+}
+
 - (void)testBasisOrthonormalityAfterRotation {
     // simulate what OrbitController produces after some yaw/pitch
     OrbitController controller;
     CameraState state;
     // apply some drag to get a non-trivial orientation
     controller.onMouseDrag(0.4f, 0.2f);
-    state = controller.update(state, 0.0f);
+    // update() writes through and reports whether it moved the camera.
+    XCTAssertTrue(controller.update(state, 0.0f));
 
     simd_float3 f = simd_act(state.orientation, simd_make_float3(0, 0, -1));
     simd_float3 r = simd_act(state.orientation, simd_make_float3(1, 0, 0));

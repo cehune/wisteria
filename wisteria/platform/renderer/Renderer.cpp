@@ -37,11 +37,22 @@ void Renderer::setBackend(BackendType type) {
     if (!next) return;
 
     bool changed = (next != _active);
+
+    // Drain the outgoing backend before the incoming one starts committing
+    // ensures no flickering from incoming frame changes
+    if (changed && _active) _active->waitIdle();
+
     _active = next;
     _type   = type;
 
     // Force a resize in case the size of window changed from the last session
     if (changed && _width && _height) next->onResize(_width, _height);
+
+    // Same reasoning for the camera, need to update it's position view
+    // // TODO: Check if shared pointer is better here for camera, just noting that I'm
+    // doing the update like this because backends have to build the MTL buffer from it
+    // and this tells them to do it (else we still need some other notification I think?)
+    if (changed && _hasCamera) next->setCameraState(_cameraState);
 
     if (changed)
         std::cout << "backend: "
@@ -60,5 +71,11 @@ void Renderer::onResize(uint32_t width, uint32_t height) {
 }
 
 void Renderer::onKey(int key, bool pressed)    { if (_active) _active->onKey(key, pressed); }
-void Renderer::onScroll(float delta)           { if (_active) _active->onScroll(delta); }
-void Renderer::onMouseDrag(float dx, float dy) { if (_active) _active->onMouseDrag(dx, dy); }
+
+// Should be trigerred onto a backend the first time it becomes active. A backend
+// built after some camera changes never saw the camera isn't aware of the change
+void Renderer::setCameraState(const CameraState& state) {
+    _cameraState = state;
+    _hasCamera   = true;
+    if (_active) _active->setCameraState(state);
+}

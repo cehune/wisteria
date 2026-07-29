@@ -12,7 +12,7 @@
 
 class FlyController : public CameraController {
 public:
-    CameraState update(const CameraState& current, float dt) override;
+    bool update(CameraState& state, float dt) override;
     void onMouseDrag(float dx, float dy) override;
     void onScroll(float delta) override;
     void onAction(CameraAction action, bool pressed) override;
@@ -27,15 +27,28 @@ private:
     simd_float3 _position    = {0.0f, 2.0f, 20.0f};
     float       _yaw         = 0.0f;    // radians, around world up (+Y)
     float       _pitch       = 0.0f;    // radians, around camera right
-    float       _speed       = 15.0f;   // units / second (tunable via setMoveSpeed)
+    float       _speed       = 10.0f;   // units / second (tunable via setMoveSpeed)
     float       _sensitivity = 0.005f;  // radians / pixel
 
     bool _fwd = false, _back = false, _left = false, _right = false,
          _up = false, _down = false;
+
+    // Starts true so the first update seeds the camera from whatever state the
+    // owner supplies, and is set by anything that actually moves the camera.
+    bool _dirty = true;
+    bool _seeded = false;
 };
 
-inline CameraState FlyController::update(const CameraState& current, float dt) {
-    CameraState next = current;
+inline bool FlyController::update(CameraState& state, float dt) {
+    // Adopt the caller's starting view once, so the owner of the camera picks
+    // the initial framing rather than this controller's defaults.
+    if (!_seeded) {
+        _position = state.position;
+        _seeded   = true;
+    }
+
+    const bool moving = _fwd || _back || _left || _right || _up || _down;
+    if (!moving && !_dirty) return false;   // nothing changed; don't reset accumulation
 
     float cosPitch = cosf(_pitch);
     float sinPitch = sinf(_pitch);
@@ -64,26 +77,31 @@ inline CameraState FlyController::update(const CameraState& current, float dt) {
     if (simd_length(vel) > 1e-5f) {
         _position += simd_normalize(vel) * (_speed * dt);
     }
-    next.position = _position;
+    state.position = _position;
 
     // Orientation columns [right, up, +Z]; +Z = -dir
     simd_float3x3 basis = { right, up, -dir };
-    next.orientation = simd_quaternion(basis);
-    return next;
+    state.orientation = simd_quaternion(basis);
+
+    _dirty = false;
+    return true;
 }
 
 inline void FlyController::onMouseDrag(float dx, float dy) {
+    _dirty = true;
     _yaw += dx * _sensitivity;
     _pitch = std::clamp(_pitch + dy * _sensitivity,
                         -(float)M_PI_2 + 0.05f, (float)M_PI_2 - 0.05f);
 }
 
 inline void FlyController::onScroll(float delta) {
-    // Scroll tunes fly speed.
+    // Scroll tunes fly speed — it does not move the camera, so this
+    // deliberately does not mark the state dirty.
     _speed = std::clamp(_speed + delta * 0.5f, 0.5f, 100.0f);
 }
 
 inline void FlyController::onAction(CameraAction action, bool pressed) {
+    _dirty = true;   // key down starts motion; key up ends it, both are changes
     switch (action) {
         case CameraAction::Forward: _fwd   = pressed; break;
         case CameraAction::Back:    _back  = pressed; break;
