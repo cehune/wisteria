@@ -11,6 +11,7 @@
 #include "engine/scene/Core.hpp"
 #include "engine/scene/Material.hpp"
 #include "SceneGeometryPool.hpp"
+#include "SceneEnvironment.hpp"
 #include <simd/simd.h>
 #include <unordered_map>
 #include <memory>
@@ -20,31 +21,29 @@ public:
     explicit Scene(std::unique_ptr<IGeometryPool> pool);
     ~Scene() { if (_materialBuffer) _materialBuffer->release(); }
 
-    // --- geometry & instancing ------------------------------------------------
     // Register geometry in the pool once; returns a mesh index. Instance it any
-    // number of times with addInstance — one upload, many transforms.
+    // number of times with addInstance
     uint32_t addMesh(const std::vector<Vertex>& verts,
                      const std::vector<uint32_t>& indices,
                      MTL::Device* device);
 
-    // Place an instance of an already-registered mesh. Returns the instance index.
+    // Place an instance of an already-registered mesh. Returns the instance index
     uint32_t addInstance(uint32_t meshIndex,
                          const simd::float4x4& transform,
                          uint32_t materialID);
 
-    // Convenience: addMesh + a single addInstance (one-off geometry, e.g. each
-    // OBJ submesh). Returns the new instance index. Call before finalize().
+    // addMesh + a single addInstance Returns the new instance index
     uint32_t addMeshFromData(const std::vector<Vertex>& verts,
                              const std::vector<uint32_t>& indices,
                              const simd::float4x4& transform,
                              uint32_t materialID, MTL::Device* device);
 
     // Load an OBJ as a scene: one instance per material submesh, albedo from Kd,
-    // and any Ke>0 submesh becomes an area light. Call before finalize().
+    // and any Ke>0 submesh becomes an area light
     void loadObjScene(const std::string& path,
                       const simd::float4x4& transform, MTL::Device* device);
 
-    // Materials (descriptions). materialBuffer() is (re)built by buildMaterialBuffer().
+    // Materials (descriptions). materialBuffer() is (re)built by buildMaterialBuffer()
     uint32_t addMaterial(const Material& m) { _materials.push_back(m); return (uint32_t)_materials.size() - 1; }
     std::vector<Material>& materials() { return _materials; }
     void buildMaterialBuffer(MTL::Device* device);
@@ -69,6 +68,9 @@ public:
     uint32_t numLights() const { return (uint32_t)_lights.size(); }
     MTL::Buffer* lightBuffer() { return _lightBuffer; }
     void buildLightBuffer(MTL::Device* device);
+
+    // env
+    SceneEnvironment& environment() { return _environment; }
     
 private:
     std::vector<Mesh>               _meshes;
@@ -82,4 +84,6 @@ private:
     // lights
     std::vector<Light> _lights;
     MTL::Buffer* _lightBuffer = nullptr;
+
+    SceneEnvironment _environment;
 };

@@ -9,12 +9,14 @@
 @implementation AppDelegate {
     NSWindow*    window;
     RenderConfig _config;
+    SceneConfig  _sceneConfig;
 }
 
-- (instancetype)initWithConfig:(const RenderConfig&)config {
+- (instancetype)initWithConfig:(const RenderConfig&)config sceneConfig:(const SceneConfig&)sceneConfig {
     self = [super init];
     if (self) {
         _config = config;
+        _sceneConfig = sceneConfig;
     }
     return self;
 }
@@ -35,7 +37,7 @@
                    )
         backing:NSBackingStoreBuffered
               defer:NO];
-    MetalView* view = [[MetalView alloc] initWithFrame:frame device:device config:_config];
+    MetalView* view = [[MetalView alloc] initWithFrame:frame device:device config:_config sceneConfig:_sceneConfig];
 
     [window setContentView:view];
     [window setDelegate:self];

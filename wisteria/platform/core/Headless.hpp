@@ -15,11 +15,12 @@
 
 #include "platform/core/Application.hpp"
 #include "platform/renderer/RenderConfig.hpp"
+#include "platform/scene/SceneConfig.hpp"
 
 #include <exception>
 #include <iostream>
 
-inline int runOffline(const RenderConfig& config) {
+inline int runOffline(const RenderConfig& config, const SceneConfig& scene) {
     // AppKit would normally supply this
     NS::AutoreleasePool* arp = NS::AutoreleasePool::alloc()->init();
 
@@ -42,12 +43,12 @@ inline int runOffline(const RenderConfig& config) {
         // Make an application to run the code. 
         // Any error is more likely cli mistake
         try {
-            Application app(dev, config);
+            Application app(dev, config, scene);
             if (!app.renderOffline()) rc = 1;
         } catch (const std::exception& e) {
             std::cerr << "offline: "
-                      << (config.scenePath.empty() ? "cornell_box.obj (default)"
-                                                   : config.scenePath)
+                      << (scene.path.empty() ? "cornell_box.obj (default)"
+                                             : scene.path)
                       << ": " << e.what() << "\n";
             rc = 1;
         }
