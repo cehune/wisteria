@@ -326,7 +326,7 @@ bool PathTracerBackend::_readbackAccumulationTexture(std::vector<float>& out,
     MTL::CommandBuffer* cmd = _commandQueue->commandBuffer();
     MTL::BlitCommandEncoder* blit = cmd->blitCommandEncoder();
     blit->copyFromTexture(_accumulation, 0, 0, MTL::Origin(0,0,0),
-                          MTL::Size(_width, _height, 1), accumBuffer,
+                          MTL::Size(outW, outH, 1), accumBuffer,   // outW/outH, not _width/_height -- see comment above
                           0, bytesPerRow, byteCount);
     blit->endEncoding();
     cmd->commit();
