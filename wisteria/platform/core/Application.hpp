@@ -13,13 +13,14 @@
 #include <string>
 #include "Renderer.hpp"
 #include "platform/renderer/RenderConfig.hpp"
+#include "platform/scene/SceneConfig.hpp"
 #include "platform/scene/SceneLoader.hpp"
 #include "engine/scene/Camera/Camera.hpp"
 #include "engine/scene/Camera/FlyController.hpp"
 
 class Application {
 public:
-    Application(MTL::Device* device, const RenderConfig& config = {});
+    Application(MTL::Device* device, const RenderConfig& config = {}, const SceneConfig& sceneConfig = {});
 
     void update();
     void render(const FrameContext& ctx);
@@ -39,7 +40,7 @@ public:
     BackendType backendType() const          { return renderer->backendType(); }
 
 private:
-    void init(const RenderConfig& config);
+    void init(const RenderConfig& config, const SceneConfig& sceneConfig);
 
     // Camera control is only for rasterization right now TODO: confirm
     bool _cameraInputEnabled() const { return renderer->active() && renderer->active()->allowsCameraMovement(); }

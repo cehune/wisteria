@@ -7,9 +7,9 @@
 
 #include "Application.hpp"
 
-Application::Application(MTL::Device* _device, const RenderConfig& config) {
+Application::Application(MTL::Device* _device, const RenderConfig& config, const SceneConfig& sceneConfig) {
     device = _device;
-    init(config);
+    init(config, sceneConfig);
 }
 
 void Application::update() {
@@ -92,7 +92,7 @@ bool Application::renderOffline() {
 }
 
 /* =======PRIVATE=======*/
-void Application::init(const RenderConfig& config) {
+void Application::init(const RenderConfig& config, const SceneConfig& sceneConfig) {
     _config = config;
 
     // Fly cam for scene design. Seeded with the framing the path tracer used to
@@ -100,7 +100,7 @@ void Application::init(const RenderConfig& config) {
     _cameraState.position = {0.0f, 1.0f, 3.0f};
     _controller = std::make_unique<FlyController>();
 
-    scene = loadScene(device, config.scenePath);
+    scene = loadScene(device, sceneConfig.path);
     std::cout << "uploaded all \n";
 
     renderer = std::make_unique<Renderer>(device, scene.get(), config.backend);

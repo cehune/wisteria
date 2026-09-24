@@ -8,6 +8,7 @@
 #import <AppKit/AppKit.h>
 #import "platform/core/AppDelegate.h"
 #include "platform/renderer/RenderConfig.hpp"
+#include "platform/scene/SceneConfig.hpp"
 #include "platform/core/Headless.hpp"
 #include <cstdlib>
 #include <cstring>
@@ -15,8 +16,7 @@
 
 // Args (both modes): --scene PATH | --width N | --height N | --backend raster|pt
 // | --headless | --spp N (sample target) | --out PATH
-static RenderConfig parseRenderConfig(int argc, const char* argv[]) {
-    RenderConfig cfg;
+static void parseArgs(int argc, const char* argv[], RenderConfig& cfg, SceneConfig& scene) {
     bool sawBackend = false;
     for (int i = 1; i < argc; ++i) {
         auto uintArg = [&](uint32_t& dst) {
@@ -26,7 +26,7 @@ static RenderConfig parseRenderConfig(int argc, const char* argv[]) {
         else if (std::strcmp(argv[i], "--height")  == 0) uintArg(cfg.height);
         else if (std::strcmp(argv[i], "--spp")     == 0) uintArg(cfg.targetSamples);
         else if (std::strcmp(argv[i], "--headless") == 0) cfg.headless = true;
-        else if (std::strcmp(argv[i], "--scene")   == 0 && i + 1 < argc) cfg.scenePath = argv[++i];
+        else if (std::strcmp(argv[i], "--scene")   == 0 && i + 1 < argc) scene.path = argv[++i];
         else if (std::strcmp(argv[i], "--out")     == 0 && i + 1 < argc) cfg.outPath = argv[++i];
         else if (std::strcmp(argv[i], "--backend") == 0 && i + 1 < argc) {
             std::string b = argv[++i];
@@ -39,22 +39,22 @@ static RenderConfig parseRenderConfig(int argc, const char* argv[]) {
     // just produces an image from cmd line
     // TODO: image output should print full path
     if (cfg.headless && !sawBackend) cfg.backend = BackendType::PathTracer;
-
-    return cfg;
 }
 
 int main(int argc, const char* argv[]) {
-    RenderConfig config = parseRenderConfig(argc, argv);
+    RenderConfig config;
+    SceneConfig  sceneConfig;
+    parseArgs(argc, argv, config, sceneConfig);
 
     // Two drivers over one Application: the offline loop, or the window.
-    if (config.headless) return runOffline(config);
+    if (config.headless) return runOffline(config, sceneConfig);
 
     @autoreleasepool {
         NSApplication* app = [NSApplication sharedApplication];
         // Become a regular foreground app so the window can become key and
         // receive keyDown/keyUp.
         [app setActivationPolicy:NSApplicationActivationPolicyRegular];
-        AppDelegate* delegate = [[AppDelegate alloc] initWithConfig:config];
+        AppDelegate* delegate = [[AppDelegate alloc] initWithConfig:config sceneConfig:sceneConfig];
 
         [app setDelegate:delegate];
         [app run];

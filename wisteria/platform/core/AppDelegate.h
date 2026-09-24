@@ -9,8 +9,9 @@
 #import "MetalView.h"
 #import <Metal/Metal.h>
 #include "platform/renderer/RenderConfig.hpp"
+#include "platform/scene/SceneConfig.hpp"
 
 @interface AppDelegate: NSObject <NSApplicationDelegate, NSWindowDelegate>
-- (instancetype)initWithConfig:(const RenderConfig&)config;
+- (instancetype)initWithConfig:(const RenderConfig&)config sceneConfig:(const SceneConfig&)sceneConfig;
 -(void)applicationDidFinishLaunching:(NSNotification*)notification;
 @end

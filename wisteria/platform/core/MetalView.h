@@ -11,9 +11,10 @@
 #import <MetalKit/MetalKit.h>
 #include "Application.hpp"
 #include "platform/renderer/RenderConfig.hpp"
+#include "platform/scene/SceneConfig.hpp"
 
 @interface MetalView: MTKView<MTKViewDelegate>
-- (instancetype)initWithFrame:(CGRect)frame device:(id<MTLDevice>)device config:(const RenderConfig&)config;
+- (instancetype)initWithFrame:(CGRect)frame device:(id<MTLDevice>)device config:(const RenderConfig&)config sceneConfig:(const SceneConfig&)sceneConfig;
 - (void)applicationDidFinishLaunching:(NSNotification*)notification;
 - (void)drawInMTKView:(MTKView *)view;
 @end
